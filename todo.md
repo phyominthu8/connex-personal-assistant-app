@@ -232,3 +232,12 @@
 - [x] Add timezone setting
 - [x] Integrate Quick Settings with Calendar gear
 - [x] Validate web and native-safe behavior
+
+## UI refinements and timezone detection
+
+- [x] Verify gear placement beside Projects in Calendar header
+- [x] Verify day-view gear removal
+- [x] Add system timezone detection utility
+- [x] Add Quick Settings auto-detect timezone action
+- [x] Persist and display detected timezone
+- [x] Validate timezone behavior safely on web and native platforms

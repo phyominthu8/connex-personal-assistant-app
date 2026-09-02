@@ -30,9 +30,7 @@ export default function CalendarScreen() {
             <Text style={[styles.eyebrow, { color: colors.muted }]}>MONDAY, SEPTEMBER 1</Text>
             <Text style={[styles.title, { color: colors.foreground }]}>Good morning</Text>
           </View>
-          <View style={styles.headerActions}><Pressable onPress={() => router.push("/projects")} accessibilityLabel="Open projects" style={styles.iconButton}><Ionicons name="folder-outline" size={20} color={colors.foreground} /></Pressable><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open settings" style={styles.iconButton}>
-            <Ionicons name="settings-outline" size={21} color={colors.foreground} />
-          </Pressable></View>
+          <View style={styles.headerActions} />
         </View>
 
         <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
@@ -47,7 +45,7 @@ export default function CalendarScreen() {
         <View style={styles.sectionHeader}>
           <Pressable onPress={() => setMonthOffset((value) => value - 1)} accessibilityLabel="Previous month"><Ionicons name="chevron-back" size={20} color={colors.foreground} /></Pressable>
           <Text style={[styles.month, { color: colors.foreground }]}>{monthLabel}</Text>
-          <Pressable onPress={() => setMonthOffset((value) => value + 1)} accessibilityLabel="Next month"><Ionicons name="chevron-forward" size={20} color={colors.foreground} /></Pressable>
+          <View style={styles.headerActions}><Pressable onPress={() => router.push("/projects")} accessibilityLabel="Open projects" style={styles.smallIcon}><Ionicons name="folder-outline" size={18} color={colors.foreground} /></Pressable><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open settings" style={styles.smallIcon}><Ionicons name="settings-outline" size={18} color={colors.foreground} /></Pressable><Pressable onPress={() => setMonthOffset((value) => value + 1)} accessibilityLabel="Next month"><Ionicons name="chevron-forward" size={20} color={colors.foreground} /></Pressable></View>
         </View>
 
         <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -60,7 +58,7 @@ export default function CalendarScreen() {
           })}</View>
         </View>
 
-        <View style={styles.sectionHeader}><View style={styles.dayTitleRow}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{monthLabel} · {selectedDay}</Text><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open day settings"><Ionicons name="settings-outline" size={19} color={colors.muted} /></Pressable></View><Text style={[styles.count, { color: colors.muted }]}>{selectedTasks.length} items</Text></View>
+        <View style={styles.sectionHeader}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{monthLabel} · {selectedDay}</Text><Text style={[styles.count, { color: colors.muted }]}>{selectedTasks.length} items</Text></View>
         <View style={styles.taskList}>{selectedTasks.length ? selectedTasks.map((task) => <View key={task.id} style={[styles.taskRow, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={[styles.taskMarker, { backgroundColor: task.priority === "High" ? colors.error : colors.primary }]} /><View style={styles.taskCopy}><Text style={[styles.taskTitle, { color: colors.foreground }, task.complete && styles.done]}>{task.title}</Text><Text style={[styles.taskTime, { color: colors.muted }]}>{task.due}</Text></View><Ionicons name={task.complete ? "checkmark-circle" : "ellipse-outline"} size={24} color={task.complete ? colors.success : colors.muted} /></View>) : <Text style={[styles.empty, { color: colors.muted }]}>No tasks planned for this date.</Text>}</View>
 
         <Pressable onPress={() => router.push("/task-editor")} style={({ pressed }) => [styles.captureButton, { backgroundColor: colors.warning }, pressed && styles.pressed]}><Ionicons name="add" size={22} color="#FFFFFF" /><Text style={styles.captureText}>Capture a task</Text></Pressable>
@@ -75,6 +73,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 22 },
   eyebrow: { fontSize: 11, fontWeight: "700", letterSpacing: 1.3, marginBottom: 6 },
   title: { fontSize: 30, fontWeight: "800", letterSpacing: -0.6 },
+  smallIcon: { width: 34, height: 34, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(127, 137, 164, 0.12)" },
   iconButton: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(127, 137, 164, 0.12)" },
   summaryCard: { borderRadius: 24, padding: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 26 },
   summaryLabel: { color: "#C7CCFF", fontSize: 10, fontWeight: "800", letterSpacing: 1.1, marginBottom: 10 },
