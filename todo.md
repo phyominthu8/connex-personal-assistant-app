@@ -216,3 +216,19 @@
 - [x] Add Voice Assistant screen with listening, transcript, confirmation, and feedback states
 - [x] Add microphone permission handling and non-voice alternatives
 - [x] Validate all approved feature groups and save a checkpoint
+
+## Welcome, calendar UI, and quick settings implementation
+
+- [ ] Verify welcome screen route and remove any Home action
+- [ ] Verify Login and Sign Up actions remain available
+- [ ] Verify welcome navigation behavior
+- [x] Add Projects action beside the Calendar month toggle
+- [x] Add Settings gear action in Calendar day view
+- [x] Create Quick Settings Menu component
+- [x] Add personal information display settings
+- [x] Add email integration setting
+- [x] Add theme toggle setting
+- [x] Add cloud sync setting for registered users
+- [x] Add timezone setting
+- [x] Integrate Quick Settings with Calendar gear
+- [x] Validate web and native-safe behavior

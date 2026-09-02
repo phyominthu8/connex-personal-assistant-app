@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { QuickSettingsMenu } from "@/components/quick-settings-menu";
 import { useColors } from "@/hooks/use-colors";
 import { useLocalTasks } from "@/lib/local-store";
 import { toDateKey } from "@/lib/task-date";
@@ -16,6 +17,7 @@ export default function CalendarScreen() {
   const { tasks: localTasks } = useLocalTasks();
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [monthOffset, setMonthOffset] = useState(0);
+  const [quickSettingsVisible, setQuickSettingsVisible] = useState(false);
   const monthLabel = useMemo(() => (monthOffset === 0 ? "September 2026" : monthOffset > 0 ? "October 2026" : "August 2026"), [monthOffset]);
   const selectedDateKey = toDateKey(new Date(2026, 8 + monthOffset, selectedDay));
   const selectedTasks = localTasks.filter((task) => task.dueDate === selectedDateKey);
@@ -28,9 +30,9 @@ export default function CalendarScreen() {
             <Text style={[styles.eyebrow, { color: colors.muted }]}>MONDAY, SEPTEMBER 1</Text>
             <Text style={[styles.title, { color: colors.foreground }]}>Good morning</Text>
           </View>
-          <Pressable accessibilityLabel="Open settings" style={styles.iconButton}>
+          <View style={styles.headerActions}><Pressable onPress={() => router.push("/projects")} accessibilityLabel="Open projects" style={styles.iconButton}><Ionicons name="folder-outline" size={20} color={colors.foreground} /></Pressable><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open settings" style={styles.iconButton}>
             <Ionicons name="settings-outline" size={21} color={colors.foreground} />
-          </Pressable>
+          </Pressable></View>
         </View>
 
         <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
@@ -58,12 +60,12 @@ export default function CalendarScreen() {
           })}</View>
         </View>
 
-        <View style={styles.sectionHeader}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{monthLabel} · {selectedDay}</Text><Text style={[styles.count, { color: colors.muted }]}>{selectedTasks.length} items</Text></View>
+        <View style={styles.sectionHeader}><View style={styles.dayTitleRow}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{monthLabel} · {selectedDay}</Text><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open day settings"><Ionicons name="settings-outline" size={19} color={colors.muted} /></Pressable></View><Text style={[styles.count, { color: colors.muted }]}>{selectedTasks.length} items</Text></View>
         <View style={styles.taskList}>{selectedTasks.length ? selectedTasks.map((task) => <View key={task.id} style={[styles.taskRow, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={[styles.taskMarker, { backgroundColor: task.priority === "High" ? colors.error : colors.primary }]} /><View style={styles.taskCopy}><Text style={[styles.taskTitle, { color: colors.foreground }, task.complete && styles.done]}>{task.title}</Text><Text style={[styles.taskTime, { color: colors.muted }]}>{task.due}</Text></View><Ionicons name={task.complete ? "checkmark-circle" : "ellipse-outline"} size={24} color={task.complete ? colors.success : colors.muted} /></View>) : <Text style={[styles.empty, { color: colors.muted }]}>No tasks planned for this date.</Text>}</View>
 
         <Pressable onPress={() => router.push("/task-editor")} style={({ pressed }) => [styles.captureButton, { backgroundColor: colors.warning }, pressed && styles.pressed]}><Ionicons name="add" size={22} color="#FFFFFF" /><Text style={styles.captureText}>Capture a task</Text></Pressable>
         <Pressable onPress={() => Alert.alert("Daily note", selectedTasks.length ? selectedTasks.map((task) => `• ${task.title}`).join("\\n") : "No tasks planned for this date yet.")} style={({ pressed }) => [styles.noteButton, { borderColor: colors.primary }, pressed && styles.pressed]}><Ionicons name="document-text-outline" size={20} color={colors.primary} /><Text style={[styles.noteText, { color: colors.primary }]}>Generate Note</Text></Pressable>
-      </ScrollView>
+      </ScrollView><QuickSettingsMenu visible={quickSettingsVisible} onClose={() => setQuickSettingsVisible(false)} />
     </ScreenContainer>
   );
 }
@@ -80,6 +82,8 @@ const styles = StyleSheet.create({
   summaryText: { color: "#E1E4FF", fontSize: 13 },
   progressRing: { width: 64, height: 64, borderRadius: 32, borderWidth: 5, borderColor: "#A5AAFF", alignItems: "center", justifyContent: "center" },
   progressText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
+  headerActions: { flexDirection: "row", gap: 8 },
+  dayTitleRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
   month: { fontSize: 17, fontWeight: "800" },
   calendarCard: { borderRadius: 20, borderWidth: 1, padding: 14, marginBottom: 26 },
