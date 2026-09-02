@@ -35,6 +35,7 @@ export const tasks = mysqlTable("tasks", {
   dueTime: varchar("dueTime", { length: 5 }),
   priority: mysqlEnum("priority", ["Low", "Medium", "High"]).notNull().default("Medium"),
   project: varchar("project", { length: 255 }).notNull().default("Personal"),
+  projectId: int("projectId"),
   category: varchar("category", { length: 64 }).notNull().default("General"),
   recurrence: varchar("recurrence", { length: 32 }),
   completed: boolean("completed").notNull().default(false),
@@ -58,3 +59,34 @@ export const alarms = mysqlTable("alarms", {
 
 export type Alarm = typeof alarms.$inferSelect;
 export type InsertAlarm = typeof alarms.$inferInsert;
+
+export const projects = mysqlTable("projects", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  startDate: varchar("startDate", { length: 10 }),
+  endDate: varchar("endDate", { length: 10 }),
+  type: mysqlEnum("type", ["personal", "work", "team", "other"]).notNull().default("personal"),
+  status: mysqlEnum("status", ["active", "completed", "archived"]).notNull().default("active"),
+  color: varchar("color", { length: 16 }).notNull().default("#4F46E5"),
+  icon: varchar("icon", { length: 32 }).notNull().default("folder"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = typeof projects.$inferInsert;
+
+export const milestones = mysqlTable("milestones", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  projectId: int("projectId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  dueDate: varchar("dueDate", { length: 10 }),
+  reminderAt: timestamp("reminderAt"),
+  completed: boolean("completed").notNull().default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Milestone = typeof milestones.$inferSelect;
+export type InsertMilestone = typeof milestones.$inferInsert;

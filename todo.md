@@ -257,3 +257,17 @@
 - [ ] Verify milestone model, CRUD, timeline, and notifications
 - [ ] Verify project reminders and deadline reminders
 - [ ] Verify project detail edit/delete and tests
+
+## Project Management feature update
+
+- [x] Add persistent project schema and model types
+- [x] Add project CRUD helpers and authenticated API procedures
+- [x] Add persistent project context/state management
+- [x] Build project create/edit/delete flows with validation
+- [x] Add project status, type, color, icon, search, filtering, and sorting
+- [x] Add task project relationship and project filter behavior
+- [x] Add persistent milestone schema, CRUD, and timeline
+- [ ] Add project reminder and deadline scheduling behavior
+- [x] Complete Project Detail statistics, progress, tasks, milestones, edit, and delete
+- [x] Add project and Project Detail tests
+- [x] Re-audit the full project feature checklist and save a checkpoint

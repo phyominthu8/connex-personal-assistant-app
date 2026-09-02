@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { Alarm, InsertAlarm, InsertTask, InsertUser, Task, alarms, tasks, users } from "../drizzle/schema";
+import { Alarm, InsertAlarm, InsertMilestone, InsertProject, InsertTask, InsertUser, Milestone, Project, Task, alarms, milestones, projects, tasks, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -102,7 +102,7 @@ export async function createTask(data: InsertTask): Promise<number> {
   return Number(result[0].insertId);
 }
 
-export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "dueDate" | "dueTime" | "priority" | "project" | "category" | "recurrence" | "completed">>): Promise<void> {
+export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "dueDate" | "dueTime" | "priority" | "project" | "projectId" | "category" | "recurrence" | "completed">>): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(tasks).set(data).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
@@ -135,3 +135,12 @@ export async function deleteAlarmForUser(userId: number, id: number): Promise<vo
   if (!db) throw new Error("Database not available");
   await db.delete(alarms).where(and(eq(alarms.id, id), eq(alarms.userId, userId)));
 }
+
+export async function listProjectsForUser(userId: number): Promise<Project[]> { const db = await getDb(); if (!db) return []; return db.select().from(projects).where(eq(projects.userId, userId)); }
+export async function createProject(data: InsertProject): Promise<number> { const db = await getDb(); if (!db) throw new Error("Database not available"); const result = await db.insert(projects).values(data); return Number(result[0].insertId); }
+export async function updateProjectForUser(userId: number, id: number, data: Partial<Pick<InsertProject, "title" | "description" | "startDate" | "endDate" | "type" | "status" | "color" | "icon">>): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.update(projects).set(data).where(and(eq(projects.id, id), eq(projects.userId, userId))); }
+export async function deleteProjectForUser(userId: number, id: number): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.delete(projects).where(and(eq(projects.id, id), eq(projects.userId, userId))); }
+export async function listMilestonesForProject(userId: number, projectId: number): Promise<Milestone[]> { const db = await getDb(); if (!db) return []; return db.select().from(milestones).where(and(eq(milestones.userId, userId), eq(milestones.projectId, projectId))); }
+export async function createMilestone(data: InsertMilestone): Promise<number> { const db = await getDb(); if (!db) throw new Error("Database not available"); const result = await db.insert(milestones).values(data); return Number(result[0].insertId); }
+export async function updateMilestoneForUser(userId: number, id: number, data: Partial<Pick<InsertMilestone, "title" | "dueDate" | "reminderAt" | "completed">>): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.update(milestones).set(data).where(and(eq(milestones.id, id), eq(milestones.userId, userId))); }
+export async function deleteMilestoneForUser(userId: number, id: number): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.delete(milestones).where(and(eq(milestones.id, id), eq(milestones.userId, userId))); }

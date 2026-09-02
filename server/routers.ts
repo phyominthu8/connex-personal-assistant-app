@@ -31,6 +31,8 @@ export const appRouter = router({
         dueTime: z.string().refine((value) => isValidTime(value), "Invalid time"),
         priority: z.enum(["Low", "Medium", "High"]).default("Medium"),
         project: z.string().trim().min(1).max(255).default("Personal"),
+        projectId: z.number().int().positive().optional(),
+        category: z.string().trim().min(1).max(64).default("General"),
       }))
       .mutation(({ ctx, input }) => db.createTask({ ...input, userId: ctx.user.id })),
     update: protectedProcedure
@@ -43,6 +45,8 @@ export const appRouter = router({
         dueTime: z.string().refine((value) => isValidTime(value), "Invalid time").optional(),
         priority: z.enum(["Low", "Medium", "High"]).optional(),
         project: z.string().trim().min(1).max(255).optional(),
+        projectId: z.number().int().positive().nullable().optional(),
+        category: z.string().trim().min(1).max(64).optional(),
         completed: z.boolean().optional(),
       }))
       .mutation(({ ctx, input }) => {
@@ -52,6 +56,16 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(({ ctx, input }) => db.deleteTaskForUser(ctx.user.id, input.id)),
+  }),
+  projects: router({
+    list: protectedProcedure.query(({ ctx }) => db.listProjectsForUser(ctx.user.id)),
+    create: protectedProcedure.input(z.object({ title: z.string().trim().min(1).max(255), description: z.string().max(5000).optional(), startDate: z.string().optional(), endDate: z.string().optional(), type: z.enum(["personal", "work", "team", "other"]).default("personal"), status: z.enum(["active", "completed", "archived"]).default("active"), color: z.string().max(16).default("#4F46E5"), icon: z.string().max(32).default("folder") })).mutation(({ ctx, input }) => db.createProject({ ...input, userId: ctx.user.id })),
+    update: protectedProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(1).max(255).optional(), description: z.string().max(5000).optional(), startDate: z.string().optional(), endDate: z.string().optional(), type: z.enum(["personal", "work", "team", "other"]).optional(), status: z.enum(["active", "completed", "archived"]).optional(), color: z.string().max(16).optional(), icon: z.string().max(32).optional() })).mutation(({ ctx, input }) => { const { id, ...data } = input; return db.updateProjectForUser(ctx.user.id, id, data); }),
+    delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteProjectForUser(ctx.user.id, input.id)),
+    milestones: protectedProcedure.input(z.object({ projectId: z.number().int().positive() })).query(({ ctx, input }) => db.listMilestonesForProject(ctx.user.id, input.projectId)),
+    createMilestone: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), title: z.string().trim().min(1).max(255), dueDate: z.string().optional(), reminderAt: z.coerce.date().optional(), completed: z.boolean().default(false) })).mutation(({ ctx, input }) => db.createMilestone({ ...input, userId: ctx.user.id })),
+    updateMilestone: protectedProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(1).max(255).optional(), dueDate: z.string().optional(), reminderAt: z.coerce.date().optional(), completed: z.boolean().optional() })).mutation(({ ctx, input }) => { const { id, ...data } = input; return db.updateMilestoneForUser(ctx.user.id, id, data); }),
+    deleteMilestone: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteMilestoneForUser(ctx.user.id, input.id)),
   }),
   alarms: router({
     list: protectedProcedure.query(({ ctx }) => db.listAlarmsForUser(ctx.user.id)),
