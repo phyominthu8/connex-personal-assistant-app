@@ -2,8 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { isValidDateKey, isValidTime, quickDateKey } from "@/lib/task-date";
 
-export type LocalTask = { id: string; title: string; due: string; dueDate: string; dueTime: string; priority: "Low" | "Medium" | "High"; project: string; category: string; recurrence?: string; complete: boolean; notes?: string };
-type TaskInput = Pick<LocalTask, "title" | "project" | "category" | "priority" | "due" | "dueDate" | "dueTime"> & { notes?: string; recurrence?: string };
+export type LocalTask = { id: string; title: string; due: string; dueDate: string; dueTime: string; priority: "Low" | "Medium" | "High"; project: string; projectId?: string; milestoneId?: string; category: string; recurrence?: string; complete: boolean; notes?: string };
+type TaskInput = Pick<LocalTask, "title" | "project" | "projectId" | "milestoneId" | "category" | "priority" | "due" | "dueDate" | "dueTime"> & { notes?: string; recurrence?: string };
 const STORAGE_KEY = "personal-assistant.tasks.v2";
 const LEGACY_KEY = "personal-assistant.tasks.v1";
 const today = quickDateKey("Today");

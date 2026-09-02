@@ -36,6 +36,7 @@ export const tasks = mysqlTable("tasks", {
   priority: mysqlEnum("priority", ["Low", "Medium", "High"]).notNull().default("Medium"),
   project: varchar("project", { length: 255 }).notNull().default("Personal"),
   projectId: int("projectId"),
+  milestoneId: int("milestoneId"),
   category: varchar("category", { length: 64 }).notNull().default("General"),
   recurrence: varchar("recurrence", { length: 32 }),
   completed: boolean("completed").notNull().default(false),

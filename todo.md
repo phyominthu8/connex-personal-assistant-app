@@ -280,3 +280,13 @@
 - [x] Add a mobile-friendly sort dropdown selector
 - [x] Add deterministic sorting regression tests
 - [x] Validate type-check, tests, and task-list behavior
+
+## Task detail, editor, and relationships update
+
+- [x] Complete Task Detail data loading and actions for local and authenticated tasks
+- [x] Complete standalone Task Editor creation and editing flow
+- [x] Add project selection to standalone task creation and editing
+- [x] Add optional milestone selection without automatically assigning milestones
+- [x] Persist project and milestone relationships locally and through tRPC
+- [ ] Add relationship and screen regression tests
+- [x] Validate type-check, tests, and task detail/editor previews

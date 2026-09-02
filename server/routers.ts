@@ -32,6 +32,7 @@ export const appRouter = router({
         priority: z.enum(["Low", "Medium", "High"]).default("Medium"),
         project: z.string().trim().min(1).max(255).default("Personal"),
         projectId: z.number().int().positive().optional(),
+        milestoneId: z.number().int().positive().optional(),
         category: z.string().trim().min(1).max(64).default("General"),
       }))
       .mutation(({ ctx, input }) => db.createTask({ ...input, userId: ctx.user.id })),
@@ -46,6 +47,7 @@ export const appRouter = router({
         priority: z.enum(["Low", "Medium", "High"]).optional(),
         project: z.string().trim().min(1).max(255).optional(),
         projectId: z.number().int().positive().nullable().optional(),
+        milestoneId: z.number().int().positive().nullable().optional(),
         category: z.string().trim().min(1).max(64).optional(),
         completed: z.boolean().optional(),
       }))

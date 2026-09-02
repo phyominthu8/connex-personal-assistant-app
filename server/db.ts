@@ -102,7 +102,7 @@ export async function createTask(data: InsertTask): Promise<number> {
   return Number(result[0].insertId);
 }
 
-export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "dueDate" | "dueTime" | "priority" | "project" | "projectId" | "category" | "recurrence" | "completed">>): Promise<void> {
+export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "dueDate" | "dueTime" | "priority" | "project" | "projectId" | "milestoneId" | "category" | "recurrence" | "completed">>): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(tasks).set(data).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
