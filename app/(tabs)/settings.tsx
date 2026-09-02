@@ -1,0 +1,34 @@
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+
+import { ScreenContainer } from "@/components/screen-container";
+import { useColors } from "@/hooks/use-colors";
+
+const accentColors = ["#4F46E5", "#16A34A", "#9333EA", "#F97316", "#0D9488"];
+
+export default function SettingsScreen() {
+  const colors = useColors();
+  const [notifications, setNotifications] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [accent, setAccent] = useState(colors.primary);
+  return <ScreenContainer className="px-5" containerClassName="bg-background"><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <Text style={[styles.eyebrow, { color: colors.muted }]}>MAKE IT YOURS</Text><Text style={[styles.title, { color: colors.foreground }]}>Settings</Text>
+    <View style={[styles.profileCard, { backgroundColor: colors.primary }]}><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View><View><Text style={styles.profileName}>Alex Morgan</Text><Text style={styles.profileEmail}>Local profile · Guest mode</Text></View><Ionicons name="chevron-forward" size={18} color="#DDE1FF" style={styles.profileChevron} /></View>
+    <Text style={[styles.sectionLabel, { color: colors.muted }]}>PREFERENCES</Text>
+    <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#EEF0FF" }]}><Ionicons name="notifications-outline" size={19} color={colors.primary} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Reminders</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Task and milestone alerts</Text></View><Switch value={notifications} onValueChange={setNotifications} trackColor={{ false: colors.border, true: colors.primary }} /></View>
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#FFF7E6" }]}><Ionicons name="moon-outline" size={19} color={colors.warning} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Dark appearance</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Follow your preference</Text></View><Switch value={darkMode} onValueChange={setDarkMode} trackColor={{ false: colors.border, true: colors.primary }} /></View>
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#E8F8F1" }]}><Ionicons name="time-outline" size={19} color={colors.success} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Timezone</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Asia / Bangkok</Text></View><Ionicons name="chevron-forward" size={18} color={colors.muted} /></View>
+    </View>
+    <Text style={[styles.sectionLabel, { color: colors.muted }]}>ACCENT COLOR</Text>
+    <View style={[styles.palette, { backgroundColor: colors.surface, borderColor: colors.border }]}>{accentColors.map((color) => <Pressable key={color} onPress={() => setAccent(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accent === color && styles.selectedSwatch]}>{accent === color && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}</Pressable>)}</View>
+    <Pressable onPress={() => router.push("/reminders")} style={[styles.manageButton, { backgroundColor: colors.surface, borderColor: colors.border }]}><Ionicons name="notifications-outline" size={19} color={colors.primary} /><Text style={[styles.manageText, { color: colors.foreground }]}>Manage reminders</Text><Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable><Text style={[styles.sectionLabel, { color: colors.muted }]}>ACCOUNT</Text>
+    <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}><Pressable style={styles.actionRow}><Ionicons name="cloud-outline" size={20} color={colors.primary} /><Text style={[styles.actionText, { color: colors.foreground }]}>Upgrade to email account</Text><Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable><View style={[styles.divider, { backgroundColor: colors.border }]} /><Pressable style={styles.actionRow}><Ionicons name="log-out-outline" size={20} color={colors.error} /><Text style={[styles.actionText, { color: colors.error }]}>Log out</Text></Pressable></View>
+  </ScrollView></ScreenContainer>;
+}
+
+const styles = StyleSheet.create({ content: { paddingTop: 14, paddingBottom: 36 }, eyebrow: { fontSize: 11, fontWeight: "700", letterSpacing: 1.2, marginBottom: 6 }, title: { fontSize: 30, fontWeight: "800", marginBottom: 20 }, profileCard: { borderRadius: 21, padding: 18, flexDirection: "row", alignItems: "center", marginBottom: 27 }, avatar: { width: 46, height: 46, borderRadius: 16, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", marginRight: 12 }, avatarText: { fontSize: 20, fontWeight: "800", color: "#4F46E5" }, profileName: { color: "#FFFFFF", fontSize: 16, fontWeight: "800", marginBottom: 4 }, profileEmail: { color: "#DDE1FF", fontSize: 12 }, profileChevron: { marginLeft: "auto" }, sectionLabel: { fontSize: 11, fontWeight: "800", letterSpacing: 1.1, marginBottom: 9, marginLeft: 3 }, group: { borderWidth: 1, borderRadius: 19, paddingHorizontal: 14, marginBottom: 24 }, row: { minHeight: 72, flexDirection: "row", alignItems: "center" }, rowIcon: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", marginRight: 12 }, rowCopy: { flex: 1 }, rowTitle: { fontSize: 14, fontWeight: "700", marginBottom: 4 }, rowSubtitle: { fontSize: 12 }, divider: { height: 1 }, palette: { borderWidth: 1, borderRadius: 19, padding: 16, flexDirection: "row", justifyContent: "space-between", marginBottom: 24 }, swatch: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" }, selectedSwatch: { borderWidth: 3, borderColor: "#FFFFFF", shadowColor: "#000000", shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }, actionRow: { minHeight: 58, flexDirection: "row", alignItems: "center", gap: 12 }, actionText: { flex: 1, fontSize: 14, fontWeight: "700" }, manageButton: { minHeight: 56, borderWidth: 1, borderRadius: 18, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 24 }, manageText: { flex: 1, fontSize: 14, fontWeight: "700" }, });

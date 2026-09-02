@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertTask, InsertUser, Task, tasks, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,27 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function listTasksForUser(userId: number): Promise<Task[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(tasks).where(eq(tasks.userId, userId));
+}
+
+export async function createTask(data: InsertTask): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(tasks).values(data);
+  return Number(result[0].insertId);
+}
+
+export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "priority" | "project" | "completed">>): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tasks).set(data).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+}
+
+export async function deleteTaskForUser(userId: number, id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+}
