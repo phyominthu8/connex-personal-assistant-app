@@ -69,7 +69,7 @@ export const projects = mysqlTable("projects", {
   startDate: varchar("startDate", { length: 10 }),
   endDate: varchar("endDate", { length: 10 }),
   type: mysqlEnum("type", ["personal", "work", "team", "other"]).notNull().default("personal"),
-  status: mysqlEnum("status", ["active", "completed", "archived"]).notNull().default("active"),
+  status: mysqlEnum("status", ["active", "completed", "on_hold", "archived"]).notNull().default("active"),
   color: varchar("color", { length: 16 }).notNull().default("#4F46E5"),
   icon: varchar("icon", { length: 32 }).notNull().default("folder"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

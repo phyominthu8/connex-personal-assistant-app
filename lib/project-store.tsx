@@ -2,12 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export type LocalMilestone = { id: string; projectId: string; title: string; dueDate: string; reminderAt?: string; completed: boolean };
-export type LocalProject = { id: string; title: string; description?: string; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "archived"; color: string; icon: string };
+export type LocalProject = { id: string; title: string; description?: string; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
 const PROJECTS_KEY = "personal-assistant.projects.v1";
 const MILESTONES_KEY = "personal-assistant.milestones.v1";
 const seedProjects: LocalProject[] = [
-  { id: "p1", title: "Website refresh", type: "work", status: "active", color: "#4F46E5", icon: "folder", description: "A focused refresh for the marketing site." },
-  { id: "p2", title: "Home garden", type: "personal", status: "active", color: "#16A34A", icon: "leaf", description: "Plan and build the new garden beds." },
+  { id: "p1", title: "Website refresh", type: "work", status: "active", color: "#4F46E5", icon: "folder", startDate: "2026-09-01", endDate: "2026-09-30", description: "A focused refresh for the marketing site." },
+  { id: "p2", title: "Home garden", type: "personal", status: "active", color: "#16A34A", icon: "leaf", startDate: "2026-09-03", endDate: "2026-10-15", description: "Plan and build the new garden beds." },
   { id: "p3", title: "Q3 planning", type: "work", status: "completed", color: "#F59E0B", icon: "flag", description: "Quarterly planning and handoff." },
 ];
 const seedMilestones: LocalMilestone[] = [{ id: "m1", projectId: "p1", title: "Direction approved", dueDate: "2026-09-05", completed: true }, { id: "m2", projectId: "p1", title: "First concept shared", dueDate: "2026-09-12", completed: false }];

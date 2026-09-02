@@ -290,3 +290,12 @@
 - [x] Persist project and milestone relationships locally and through tRPC
 - [ ] Add relationship and screen regression tests
 - [x] Validate type-check, tests, and task detail/editor previews
+
+## Project interface enhancements
+
+- [x] Add reusable project timeline visualization with milestone markers
+- [x] Add Active, Completed, On Hold, and Archived status presentation
+- [x] Add timeline view mode to the Projects list
+- [x] Add project health/status indicators derived from project progress and dates
+- [x] Add deterministic project timeline and status tests
+- [x] Validate project interface behavior and save a checkpoint
