@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertTask, InsertUser, Task, tasks, users } from "../drizzle/schema";
+import { Alarm, InsertAlarm, InsertTask, InsertUser, Task, alarms, tasks, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -102,7 +102,7 @@ export async function createTask(data: InsertTask): Promise<number> {
   return Number(result[0].insertId);
 }
 
-export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "dueDate" | "dueTime" | "priority" | "project" | "completed">>): Promise<void> {
+export async function updateTaskForUser(userId: number, id: number, data: Partial<Pick<InsertTask, "title" | "description" | "dueLabel" | "dueDate" | "dueTime" | "priority" | "project" | "category" | "recurrence" | "completed">>): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(tasks).set(data).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
@@ -112,4 +112,26 @@ export async function deleteTaskForUser(userId: number, id: number): Promise<voi
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+}
+
+export async function listAlarmsForUser(userId: number): Promise<Alarm[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(alarms).where(eq(alarms.userId, userId));
+}
+export async function createAlarm(data: InsertAlarm): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(alarms).values(data);
+  return Number(result[0].insertId);
+}
+export async function updateAlarmForUser(userId: number, id: number, data: Partial<Pick<InsertAlarm, "title" | "fireAt" | "enabled">>): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(alarms).set(data).where(and(eq(alarms.id, id), eq(alarms.userId, userId)));
+}
+export async function deleteAlarmForUser(userId: number, id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(alarms).where(and(eq(alarms.id, id), eq(alarms.userId, userId)));
 }

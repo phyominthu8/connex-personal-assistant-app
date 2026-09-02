@@ -201,3 +201,18 @@
 - [x] Add category support to the task model and editor
 - [x] Add deterministic edit/delete tests
 - [x] Run validation and save a feature checkpoint
+
+## Approved remaining features
+
+- [x] Add persisted task category field and category selector
+- [ ] Add deterministic edit/delete integration tests
+- [x] Add calendar-events and alarms database schema and migration
+- [x] Add alarm CRUD and ownership-protected API procedures
+- [x] Add local notification permission and scheduling helpers
+- [ ] Connect reminders to persisted alarm state
+- [x] Add recurring task fields and next-occurrence behavior
+- [ ] Add recurring edit/delete scope choices
+- [x] Persist settings and notification preferences
+- [x] Add Voice Assistant screen with listening, transcript, confirmation, and feedback states
+- [x] Add microphone permission handling and non-voice alternatives
+- [x] Validate all approved feature groups and save a checkpoint

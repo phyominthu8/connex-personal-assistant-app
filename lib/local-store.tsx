@@ -2,21 +2,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { isValidDateKey, isValidTime, quickDateKey } from "@/lib/task-date";
 
-export type LocalTask = { id: string; title: string; due: string; dueDate: string; dueTime: string; priority: "Low" | "Medium" | "High"; project: string; complete: boolean; notes?: string };
-type TaskInput = Pick<LocalTask, "title" | "project" | "priority" | "due" | "dueDate" | "dueTime"> & { notes?: string };
+export type LocalTask = { id: string; title: string; due: string; dueDate: string; dueTime: string; priority: "Low" | "Medium" | "High"; project: string; category: string; recurrence?: string; complete: boolean; notes?: string };
+type TaskInput = Pick<LocalTask, "title" | "project" | "category" | "priority" | "due" | "dueDate" | "dueTime"> & { notes?: string; recurrence?: string };
 const STORAGE_KEY = "personal-assistant.tasks.v2";
 const LEGACY_KEY = "personal-assistant.tasks.v1";
 const today = quickDateKey("Today");
 const seedTasks: LocalTask[] = [
-  { id: "1", title: "Prepare weekly priorities", due: "Today · 9:00 AM", dueDate: today, dueTime: "09:00", priority: "High", project: "Personal", complete: false },
-  { id: "2", title: "Review project milestones", due: "Today · 11:30 AM", dueDate: today, dueTime: "11:30", priority: "Medium", project: "Website refresh", complete: true },
-  { id: "3", title: "Call with design team", due: "Today · 3:00 PM", dueDate: today, dueTime: "15:00", priority: "Medium", project: "Website refresh", complete: false },
-  { id: "4", title: "Plan next week’s meals", due: "Tomorrow", dueDate: quickDateKey("Tomorrow"), dueTime: "18:00", priority: "Low", project: "Personal", complete: false },
+  { id: "1", title: "Prepare weekly priorities", due: "Today · 9:00 AM", dueDate: today, dueTime: "09:00", priority: "High", project: "Personal", category: "Planning", complete: false },
+  { id: "2", title: "Review project milestones", due: "Today · 11:30 AM", dueDate: today, dueTime: "11:30", priority: "Medium", project: "Website refresh", category: "Work", complete: true },
+  { id: "3", title: "Call with design team", due: "Today · 3:00 PM", dueDate: today, dueTime: "15:00", priority: "Medium", project: "Website refresh", category: "Work", complete: false },
+  { id: "4", title: "Plan next week’s meals", due: "Tomorrow", dueDate: quickDateKey("Tomorrow"), dueTime: "18:00", priority: "Low", project: "Personal", category: "Personal", complete: false },
 ];
 
 type TaskStore = { tasks: LocalTask[]; hydrated: boolean; addTask: (input: TaskInput) => Promise<void>; updateTask: (id: string, input: Partial<TaskInput>) => Promise<void>; deleteTask: (id: string) => Promise<void>; toggleTask: (id: string) => Promise<void> };
 const TaskContext = createContext<TaskStore | null>(null);
-function safeTasks(value: string | null) { if (!value) return null; try { const parsed = JSON.parse(value) as Array<Partial<LocalTask>>; if (!Array.isArray(parsed)) return null; return parsed.filter((task) => typeof task.id === "string" && typeof task.title === "string").map((task) => ({ ...task, dueDate: task.dueDate && isValidDateKey(task.dueDate) ? task.dueDate : today, dueTime: task.dueTime && isValidTime(task.dueTime) ? task.dueTime : "09:00", due: task.due || "Today", priority: task.priority === "High" || task.priority === "Low" ? task.priority : "Medium", project: task.project || "Personal", complete: Boolean(task.complete) })) as LocalTask[]; } catch { return null; } }
+function safeTasks(value: string | null) { if (!value) return null; try { const parsed = JSON.parse(value) as Array<Partial<LocalTask>>; if (!Array.isArray(parsed)) return null; return parsed.filter((task) => typeof task.id === "string" && typeof task.title === "string").map((task) => ({ ...task, dueDate: task.dueDate && isValidDateKey(task.dueDate) ? task.dueDate : today, dueTime: task.dueTime && isValidTime(task.dueTime) ? task.dueTime : "09:00", due: task.due || "Today", priority: task.priority === "High" || task.priority === "Low" ? task.priority : "Medium", project: task.project || "Personal", category: task.category || "General", recurrence: task.recurrence, complete: Boolean(task.complete) })) as LocalTask[]; } catch { return null; } }
 
 export function LocalStoreProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<LocalTask[]>(seedTasks);

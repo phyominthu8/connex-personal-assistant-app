@@ -5,28 +5,30 @@ import { router } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { usePreferences } from "@/lib/preferences";
 
 const accentColors = ["#4F46E5", "#16A34A", "#9333EA", "#F97316", "#0D9488"];
 
 export default function SettingsScreen() {
   const colors = useColors();
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [accent, setAccent] = useState(colors.primary);
+  const { preferences, update } = usePreferences();
+  const notifications = preferences.notifications;
+  const darkMode = preferences.darkMode;
+  const accent = preferences.accent;
   return <ScreenContainer className="px-5" containerClassName="bg-background"><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
     <Text style={[styles.eyebrow, { color: colors.muted }]}>MAKE IT YOURS</Text><Text style={[styles.title, { color: colors.foreground }]}>Settings</Text>
     <View style={[styles.profileCard, { backgroundColor: colors.primary }]}><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View><View><Text style={styles.profileName}>Alex Morgan</Text><Text style={styles.profileEmail}>Local profile · Guest mode</Text></View><Ionicons name="chevron-forward" size={18} color="#DDE1FF" style={styles.profileChevron} /></View>
     <Text style={[styles.sectionLabel, { color: colors.muted }]}>PREFERENCES</Text>
     <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#EEF0FF" }]}><Ionicons name="notifications-outline" size={19} color={colors.primary} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Reminders</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Task and milestone alerts</Text></View><Switch value={notifications} onValueChange={setNotifications} trackColor={{ false: colors.border, true: colors.primary }} /></View>
+      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#EEF0FF" }]}><Ionicons name="notifications-outline" size={19} color={colors.primary} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Reminders</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Task and milestone alerts</Text></View><Switch value={notifications} onValueChange={(value) => update({ notifications: value })} trackColor={{ false: colors.border, true: colors.primary }} /></View>
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
-      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#FFF7E6" }]}><Ionicons name="moon-outline" size={19} color={colors.warning} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Dark appearance</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Follow your preference</Text></View><Switch value={darkMode} onValueChange={setDarkMode} trackColor={{ false: colors.border, true: colors.primary }} /></View>
+      <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#FFF7E6" }]}><Ionicons name="moon-outline" size={19} color={colors.warning} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Dark appearance</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Follow your preference</Text></View><Switch value={darkMode} onValueChange={(value) => update({ darkMode: value })} trackColor={{ false: colors.border, true: colors.primary }} /></View>
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
       <View style={styles.row}><View style={[styles.rowIcon, { backgroundColor: "#E8F8F1" }]}><Ionicons name="time-outline" size={19} color={colors.success} /></View><View style={styles.rowCopy}><Text style={[styles.rowTitle, { color: colors.foreground }]}>Timezone</Text><Text style={[styles.rowSubtitle, { color: colors.muted }]}>Asia / Bangkok</Text></View><Ionicons name="chevron-forward" size={18} color={colors.muted} /></View>
     </View>
     <Text style={[styles.sectionLabel, { color: colors.muted }]}>ACCENT COLOR</Text>
-    <View style={[styles.palette, { backgroundColor: colors.surface, borderColor: colors.border }]}>{accentColors.map((color) => <Pressable key={color} onPress={() => setAccent(color)} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accent === color && styles.selectedSwatch]}>{accent === color && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}</Pressable>)}</View>
-    <Pressable onPress={() => router.push("/reminders")} style={[styles.manageButton, { backgroundColor: colors.surface, borderColor: colors.border }]}><Ionicons name="notifications-outline" size={19} color={colors.primary} /><Text style={[styles.manageText, { color: colors.foreground }]}>Manage reminders</Text><Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable><Text style={[styles.sectionLabel, { color: colors.muted }]}>ACCOUNT</Text>
+    <View style={[styles.palette, { backgroundColor: colors.surface, borderColor: colors.border }]}>{accentColors.map((color) => <Pressable key={color} onPress={() => update({ accent: color })} accessibilityLabel={`Choose ${color} accent`} style={[styles.swatch, { backgroundColor: color }, accent === color && styles.selectedSwatch]}>{accent === color && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}</Pressable>)}</View>
+    <Pressable onPress={() => router.push("/reminders")} style={[styles.manageButton, { backgroundColor: colors.surface, borderColor: colors.border }]}><Ionicons name="notifications-outline" size={19} color={colors.primary} /><Text style={[styles.manageText, { color: colors.foreground }]}>Manage reminders</Text><Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable><Pressable onPress={() => router.push("/voice")} style={[styles.manageButton, { backgroundColor: colors.surface, borderColor: colors.border }]}><Ionicons name="mic-outline" size={19} color={colors.primary} /><Text style={[styles.manageText, { color: colors.foreground }]}>Voice Assistant</Text><Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable><Text style={[styles.sectionLabel, { color: colors.muted }]}>ACCOUNT</Text>
     <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}><Pressable style={styles.actionRow}><Ionicons name="cloud-outline" size={20} color={colors.primary} /><Text style={[styles.actionText, { color: colors.foreground }]}>Upgrade to email account</Text><Ionicons name="chevron-forward" size={18} color={colors.muted} /></Pressable><View style={[styles.divider, { backgroundColor: colors.border }]} /><Pressable style={styles.actionRow}><Ionicons name="log-out-outline" size={20} color={colors.error} /><Text style={[styles.actionText, { color: colors.error }]}>Log out</Text></Pressable></View>
   </ScrollView></ScreenContainer>;
 }

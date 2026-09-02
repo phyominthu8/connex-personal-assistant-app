@@ -53,6 +53,12 @@ export const appRouter = router({
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(({ ctx, input }) => db.deleteTaskForUser(ctx.user.id, input.id)),
   }),
+  alarms: router({
+    list: protectedProcedure.query(({ ctx }) => db.listAlarmsForUser(ctx.user.id)),
+    create: protectedProcedure.input(z.object({ title: z.string().trim().min(1).max(255), taskId: z.number().int().positive().optional(), fireAt: z.coerce.date(), enabled: z.boolean().default(true) })).mutation(({ ctx, input }) => db.createAlarm({ ...input, userId: ctx.user.id })),
+    update: protectedProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(1).max(255).optional(), fireAt: z.coerce.date().optional(), enabled: z.boolean().optional() })).mutation(({ ctx, input }) => { const { id, ...data } = input; return db.updateAlarmForUser(ctx.user.id, id, data); }),
+    delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteAlarmForUser(ctx.user.id, input.id)),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

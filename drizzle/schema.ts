@@ -35,6 +35,8 @@ export const tasks = mysqlTable("tasks", {
   dueTime: varchar("dueTime", { length: 5 }),
   priority: mysqlEnum("priority", ["Low", "Medium", "High"]).notNull().default("Medium"),
   project: varchar("project", { length: 255 }).notNull().default("Personal"),
+  category: varchar("category", { length: 64 }).notNull().default("General"),
+  recurrence: varchar("recurrence", { length: 32 }),
   completed: boolean("completed").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -42,3 +44,17 @@ export const tasks = mysqlTable("tasks", {
 
 export type Task = typeof tasks.$inferSelect;
 export type InsertTask = typeof tasks.$inferInsert;
+
+export const alarms = mysqlTable("alarms", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  taskId: int("taskId"),
+  title: varchar("title", { length: 255 }).notNull(),
+  fireAt: timestamp("fireAt").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Alarm = typeof alarms.$inferSelect;
+export type InsertAlarm = typeof alarms.$inferInsert;
