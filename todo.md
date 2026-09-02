@@ -271,3 +271,12 @@
 - [x] Complete Project Detail statistics, progress, tasks, milestones, edit, and delete
 - [x] Add project and Project Detail tests
 - [x] Re-audit the full project feature checklist and save a checkpoint
+
+## Advanced task sorting update
+
+- [x] Add a shared task sort option model and deterministic comparator
+- [x] Add priority, created-date, due-date, and title sort modes to Tasks
+- [x] Persist the selected task sort preference in AsyncStorage
+- [x] Add a mobile-friendly sort dropdown selector
+- [x] Add deterministic sorting regression tests
+- [x] Validate type-check, tests, and task-list behavior
