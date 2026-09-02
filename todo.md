@@ -178,3 +178,26 @@
 - [ ] Add persisted reminder scheduling and management behavior
 - [x] Add deterministic unit and integration tests for implemented flows
 - [x] Re-audit all implemented checklist items and save a validated checkpoint
+
+## Task edit and delete audit
+
+- [x] Verify full edit form fields and picker integration
+- [x] Verify edit entry point on task list items
+- [x] Verify edit entry point on task detail
+- [x] Verify deletion confirmation behavior
+- [x] Verify delete entry point on task list items
+- [x] Verify delete entry point on task detail
+- [x] Verify server database edit helpers
+- [x] Verify edit/delete unit and integration tests
+
+## Task edit and delete implementation
+
+- [x] Make Task Editor support create and edit modes
+- [x] Load existing task data into the shared editor
+- [x] Persist local task updates and deletes
+- [x] Persist authenticated task updates and deletes
+- [x] Add edit and delete actions to task list items
+- [x] Connect Task Detail edit and delete actions to persistence
+- [x] Add category support to the task model and editor
+- [x] Add deterministic edit/delete tests
+- [x] Run validation and save a feature checkpoint
