@@ -241,3 +241,19 @@
 - [x] Add Quick Settings auto-detect timezone action
 - [x] Persist and display detected timezone
 - [x] Validate timezone behavior safely on web and native platforms
+
+## Preview recovery
+
+- [x] Restart the development server
+- [x] Confirm the preview URL responds after restart
+
+## Project management audit and implementation
+
+- [ ] Verify project database schema and model types
+- [ ] Verify project CRUD, context, list filtering, sorting, and forms
+- [ ] Verify project status, type, color, and icon behavior
+- [ ] Verify task project relationship and project filtering
+- [ ] Verify project detail task counts and progress calculation
+- [ ] Verify milestone model, CRUD, timeline, and notifications
+- [ ] Verify project reminders and deadline reminders
+- [ ] Verify project detail edit/delete and tests
