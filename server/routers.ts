@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import * as db from "./db";
 import { z } from "zod";
+import { isValidDateKey, isValidTime } from "../lib/task-date";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -26,6 +27,8 @@ export const appRouter = router({
         title: z.string().trim().min(1).max(255),
         description: z.string().max(5000).optional(),
         dueLabel: z.string().trim().min(1).max(64).default("Today"),
+        dueDate: z.string().refine((value) => isValidDateKey(value), "Invalid date"),
+        dueTime: z.string().refine((value) => isValidTime(value), "Invalid time"),
         priority: z.enum(["Low", "Medium", "High"]).default("Medium"),
         project: z.string().trim().min(1).max(255).default("Personal"),
       }))
@@ -36,6 +39,8 @@ export const appRouter = router({
         title: z.string().trim().min(1).max(255).optional(),
         description: z.string().max(5000).optional(),
         dueLabel: z.string().trim().min(1).max(64).optional(),
+        dueDate: z.string().refine((value) => isValidDateKey(value), "Invalid date").optional(),
+        dueTime: z.string().refine((value) => isValidTime(value), "Invalid time").optional(),
         priority: z.enum(["Low", "Medium", "High"]).optional(),
         project: z.string().trim().min(1).max(255).optional(),
         completed: z.boolean().optional(),

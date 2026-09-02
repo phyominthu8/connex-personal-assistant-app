@@ -8,6 +8,7 @@ import { useColors } from "@/hooks/use-colors";
 import { useLocalTasks } from "@/lib/local-store";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
+import { matchesTaskDateFilter, type TaskDateFilter } from "@/lib/task-date";
 
 const initialTasks = [
   { id: "1", title: "Prepare weekly priorities", due: "Today · 9:00 AM", priority: "High", project: "Personal", complete: false },
@@ -22,13 +23,13 @@ export default function TasksScreen() {
   const { user } = useAuth();
   const serverTasksQuery = trpc.tasks.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const updateTaskMutation = trpc.tasks.update.useMutation({ onSuccess: () => serverTasksQuery.refetch() });
-  const tasks = user && serverTasksQuery.data ? serverTasksQuery.data.map((task) => ({ id: String(task.id), title: task.title, due: task.dueLabel, priority: task.priority, project: task.project, complete: task.completed })) : localTasks;
+  const tasks = user && serverTasksQuery.data ? serverTasksQuery.data.map((task) => ({ id: String(task.id), title: task.title, due: task.dueLabel, dueDate: task.dueDate || "", priority: task.priority, project: task.project, complete: task.completed })) : localTasks;
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("All");
-  const filters = ["All", "Today", "High", "Completed"];
+  const [filter, setFilter] = useState<TaskDateFilter>("All");
+  const filters: TaskDateFilter[] = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Completed"];
   const visibleTasks = useMemo(() => tasks.filter((task) => {
     const matchesQuery = `${task.title} ${task.project}`.toLowerCase().includes(query.toLowerCase());
-    const matchesFilter = filter === "All" || (filter === "Today" && task.due.startsWith("Today")) || (filter === "High" && task.priority === "High") || (filter === "Completed" && task.complete);
+    const matchesFilter = matchesTaskDateFilter({ dueDate: task.dueDate, completed: task.complete }, filter);
     return matchesQuery && matchesFilter;
   }), [filter, query, tasks]);
 

@@ -1,33 +1,29 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { isValidDateKey, isValidTime, quickDateKey } from "@/lib/task-date";
 
-export type LocalTask = {
-  id: string;
-  title: string;
-  due: string;
-  priority: "Low" | "Medium" | "High";
-  project: string;
-  complete: boolean;
-};
-
-const STORAGE_KEY = "personal-assistant.tasks.v1";
+export type LocalTask = { id: string; title: string; due: string; dueDate: string; dueTime: string; priority: "Low" | "Medium" | "High"; project: string; complete: boolean; notes?: string };
+type TaskInput = Pick<LocalTask, "title" | "project" | "priority" | "due" | "dueDate" | "dueTime"> & { notes?: string };
+const STORAGE_KEY = "personal-assistant.tasks.v2";
+const LEGACY_KEY = "personal-assistant.tasks.v1";
+const today = quickDateKey("Today");
 const seedTasks: LocalTask[] = [
-  { id: "1", title: "Prepare weekly priorities", due: "Today · 9:00 AM", priority: "High", project: "Personal", complete: false },
-  { id: "2", title: "Review project milestones", due: "Today · 11:30 AM", priority: "Medium", project: "Website refresh", complete: true },
-  { id: "3", title: "Call with design team", due: "Today · 3:00 PM", priority: "Medium", project: "Website refresh", complete: false },
-  { id: "4", title: "Plan next week’s meals", due: "Tomorrow", priority: "Low", project: "Personal", complete: false },
+  { id: "1", title: "Prepare weekly priorities", due: "Today · 9:00 AM", dueDate: today, dueTime: "09:00", priority: "High", project: "Personal", complete: false },
+  { id: "2", title: "Review project milestones", due: "Today · 11:30 AM", dueDate: today, dueTime: "11:30", priority: "Medium", project: "Website refresh", complete: true },
+  { id: "3", title: "Call with design team", due: "Today · 3:00 PM", dueDate: today, dueTime: "15:00", priority: "Medium", project: "Website refresh", complete: false },
+  { id: "4", title: "Plan next week’s meals", due: "Tomorrow", dueDate: quickDateKey("Tomorrow"), dueTime: "18:00", priority: "Low", project: "Personal", complete: false },
 ];
 
-type TaskStore = { tasks: LocalTask[]; hydrated: boolean; addTask: (input: Pick<LocalTask, "title" | "project" | "priority" | "due">) => Promise<void>; toggleTask: (id: string) => Promise<void> };
+type TaskStore = { tasks: LocalTask[]; hydrated: boolean; addTask: (input: TaskInput) => Promise<void>; updateTask: (id: string, input: Partial<TaskInput>) => Promise<void>; deleteTask: (id: string) => Promise<void>; toggleTask: (id: string) => Promise<void> };
 const TaskContext = createContext<TaskStore | null>(null);
+function safeTasks(value: string | null) { if (!value) return null; try { const parsed = JSON.parse(value) as Array<Partial<LocalTask>>; if (!Array.isArray(parsed)) return null; return parsed.filter((task) => typeof task.id === "string" && typeof task.title === "string").map((task) => ({ ...task, dueDate: task.dueDate && isValidDateKey(task.dueDate) ? task.dueDate : today, dueTime: task.dueTime && isValidTime(task.dueTime) ? task.dueTime : "09:00", due: task.due || "Today", priority: task.priority === "High" || task.priority === "Low" ? task.priority : "Medium", project: task.project || "Personal", complete: Boolean(task.complete) })) as LocalTask[]; } catch { return null; } }
 
 export function LocalStoreProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<LocalTask[]>(seedTasks);
   const [hydrated, setHydrated] = useState(false);
-  useEffect(() => { AsyncStorage.getItem(STORAGE_KEY).then((value) => { if (value) setTasks(JSON.parse(value) as LocalTask[]); }).catch(() => undefined).finally(() => setHydrated(true)); }, []);
+  useEffect(() => { (async () => { const current = safeTasks(await AsyncStorage.getItem(STORAGE_KEY)); const legacy = current ? null : safeTasks(await AsyncStorage.getItem(LEGACY_KEY)); if (current || legacy) { const migrated = current || legacy || seedTasks; setTasks(migrated); await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(migrated)); } setHydrated(true); })().catch(() => setHydrated(true)); }, []);
   const persist = async (next: LocalTask[]) => { setTasks(next); await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); };
-  const value = useMemo<TaskStore>(() => ({ tasks, hydrated, addTask: async (input) => { await persist([{ ...input, id: `${Date.now()}`, complete: false }, ...tasks]); }, toggleTask: async (id) => { await persist(tasks.map((task) => task.id === id ? { ...task, complete: !task.complete } : task)); } }), [hydrated, tasks]);
+  const value = useMemo<TaskStore>(() => ({ tasks, hydrated, addTask: async (input) => persist([{ ...input, id: `${Date.now()}`, complete: false }, ...tasks]), updateTask: async (id, input) => persist(tasks.map((task) => task.id === id ? { ...task, ...input } : task)), deleteTask: async (id) => persist(tasks.filter((task) => task.id !== id)), toggleTask: async (id) => persist(tasks.map((task) => task.id === id ? { ...task, complete: !task.complete } : task)) }), [hydrated, tasks]);
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 }
-
 export function useLocalTasks() { const value = useContext(TaskContext); if (!value) throw new Error("useLocalTasks must be used inside LocalStoreProvider"); return value; }

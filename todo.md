@@ -94,3 +94,87 @@
 - [x] Add authentication and ownership boundaries for synced data
 - [x] Validate migration, API procedures, reload persistence, and fallback behavior
 - [ ] Save a database-enabled checkpoint
+
+## Phase 1 audit
+
+- [x] Verify task schema and migration in the current project
+- [x] Verify Task model/type definitions
+- [x] Verify task CRUD implementation and ownership behavior
+- [x] Verify Home/task overview screen
+- [x] Verify the complete task filtering set
+- [x] Verify Create/Edit Task modal behavior
+- [x] Verify task completion toggle behavior
+- [x] Run type-check and relevant tests
+
+## Phase 2 audit
+
+- [x] Verify calendar-events and alarms database schema
+- [x] Verify Calendar month-view screen
+- [x] Verify previous/next month navigation
+- [x] Verify task indicators on calendar dates
+- [x] Verify calendar day view
+- [x] Verify quick task creation from the calendar
+- [x] Run Phase 2 type-check and relevant tests
+
+## Phase 5 audit
+
+- [x] Verify generated custom logo and launcher icon assets
+- [x] Verify app branding fields in app.config.ts
+
+## Calendar Enhancements audit
+
+- [x] Verify Generate Note button at the bottom of Calendar
+- [x] Verify bottom task-list display
+- [x] Verify note generation from tasks
+- [x] Verify selected-date tasks in the bottom section
+
+## IndexedDB audit
+
+- [x] Verify IndexedDB database service for task persistence
+- [x] Verify local task CRUD operations
+- [x] Verify LocalTask schema and validation
+- [x] Verify first-run migration system
+- [x] Verify task query and filtering dimensions
+- [x] Verify error handling and recovery
+- [x] Verify useLocalTasks React hook
+- [x] Verify task-context integration readiness
+- [x] Verify database unit-test coverage and count
+- [x] Verify web-platform IndexedDB support
+
+## Database integration audit
+
+- [x] Verify task context uses the claimed database service
+- [x] Verify existing task state migration and full CRUD mapping
+- [x] Verify automatic persistence on create/update/delete
+- [x] Verify startup loading from the database
+- [x] Verify comprehensive database-operation error handling
+- [x] Verify database/task-management integration test coverage
+- [x] Verify persistence across page reloads
+- [x] Verify all task operations are tested and functional
+
+## Date and time picker audit
+
+- [x] Verify date picker component and month navigation
+- [x] Verify time picker component and scrolling selection
+- [x] Verify date-picker integration in task creation
+- [x] Verify time-picker integration in task creation
+- [x] Verify quick date options
+- [x] Verify date min/max validation
+- [x] Verify 24-hour time validation
+- [x] Verify readable date/time display
+- [x] Verify picker unit-test coverage and reported count
+- [x] Verify web-platform testing
+
+## Consolidated implementation sprint
+
+- [x] Add canonical task date/time fields with validation and readable formatting
+- [x] Add reusable date picker with month navigation and quick date options
+- [x] Add reusable time picker with valid 24-hour input
+- [x] Expand task filters to All, Today, Tomorrow, This Week, Overdue, Completed
+- [x] Complete local task CRUD, validation, migration, and recovery behavior
+- [ ] Add calendar-event and alarm persistence schema
+- [x] Make calendar indicators and selected-day tasks data-driven
+- [x] Add Generate Note action derived from selected-day tasks
+- [ ] Add persisted reminder scheduling and management behavior
+- [x] Add deterministic unit and integration tests for implemented flows
+- [x] Re-audit all implemented checklist items and save a validated checkpoint

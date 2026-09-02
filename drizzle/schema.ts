@@ -31,6 +31,8 @@ export const tasks = mysqlTable("tasks", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   dueLabel: varchar("dueLabel", { length: 64 }).notNull().default("Today"),
+  dueDate: varchar("dueDate", { length: 10 }),
+  dueTime: varchar("dueTime", { length: 5 }),
   priority: mysqlEnum("priority", ["Low", "Medium", "High"]).notNull().default("Medium"),
   project: varchar("project", { length: 255 }).notNull().default("Personal"),
   completed: boolean("completed").notNull().default(false),

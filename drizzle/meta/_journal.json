@@ -15,6 +15,13 @@
       "when": 1788314901053,
       "tag": "0001_slow_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1788318055858,
+      "tag": "0002_reflective_miek",
+      "breakpoints": true
     }
   ]
 }

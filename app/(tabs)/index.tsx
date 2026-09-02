@@ -1,25 +1,24 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { useLocalTasks } from "@/lib/local-store";
+import { toDateKey } from "@/lib/task-date";
 
 const days = ["S", "M", "T", "W", "T", "F", "S"];
 const calendarDays = Array.from({ length: 35 }, (_, index) => index + 1);
 
-const tasks = [
-  { title: "Prepare weekly priorities", time: "9:00 AM", color: "#4F46E5", done: false },
-  { title: "Review project milestones", time: "11:30 AM", color: "#F59E0B", done: true },
-  { title: "Call with design team", time: "3:00 PM", color: "#16A34A", done: false },
-];
-
 export default function CalendarScreen() {
   const colors = useColors();
-  const [selectedDay, setSelectedDay] = useState(12);
+  const { tasks: localTasks } = useLocalTasks();
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [monthOffset, setMonthOffset] = useState(0);
   const monthLabel = useMemo(() => (monthOffset === 0 ? "September 2026" : monthOffset > 0 ? "October 2026" : "August 2026"), [monthOffset]);
+  const selectedDateKey = toDateKey(new Date(2026, 8 + monthOffset, selectedDay));
+  const selectedTasks = localTasks.filter((task) => task.dueDate === selectedDateKey);
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
@@ -52,16 +51,18 @@ export default function CalendarScreen() {
         <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.weekRow}>{days.map((day, index) => <Text key={`${day}-${index}`} style={[styles.weekday, { color: colors.muted }]}>{day}</Text>)}</View>
           <View style={styles.grid}>{calendarDays.map((day) => {
-            const hasTask = [4, 12, 18, 25].includes(day);
+            const dayKey = day > 0 ? toDateKey(new Date(2026, 8 + monthOffset, day)) : "";
+            const hasTask = localTasks.some((task) => task.dueDate === dayKey);
             const selected = day === selectedDay;
             return <Pressable key={day} onPress={() => setSelectedDay(day)} style={[styles.dayCell, selected && { backgroundColor: colors.primary }]}><Text style={[styles.dayText, { color: selected ? "#FFFFFF" : colors.foreground }]}>{day}</Text>{hasTask && <View style={[styles.dot, { backgroundColor: selected ? "#FFFFFF" : colors.warning }]} />}</Pressable>;
           })}</View>
         </View>
 
-        <View style={styles.sectionHeader}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>September {selectedDay}</Text><Text style={[styles.count, { color: colors.muted }]}>{tasks.length} items</Text></View>
-        <View style={styles.taskList}>{tasks.map((task) => <View key={task.title} style={[styles.taskRow, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={[styles.taskMarker, { backgroundColor: task.color }]} /><View style={styles.taskCopy}><Text style={[styles.taskTitle, { color: colors.foreground }, task.done && styles.done]}>{task.title}</Text><Text style={[styles.taskTime, { color: colors.muted }]}>{task.time}</Text></View><Ionicons name={task.done ? "checkmark-circle" : "ellipse-outline"} size={24} color={task.done ? colors.success : colors.muted} /></View>)}</View>
+        <View style={styles.sectionHeader}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{monthLabel} · {selectedDay}</Text><Text style={[styles.count, { color: colors.muted }]}>{selectedTasks.length} items</Text></View>
+        <View style={styles.taskList}>{selectedTasks.length ? selectedTasks.map((task) => <View key={task.id} style={[styles.taskRow, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={[styles.taskMarker, { backgroundColor: task.priority === "High" ? colors.error : colors.primary }]} /><View style={styles.taskCopy}><Text style={[styles.taskTitle, { color: colors.foreground }, task.complete && styles.done]}>{task.title}</Text><Text style={[styles.taskTime, { color: colors.muted }]}>{task.due}</Text></View><Ionicons name={task.complete ? "checkmark-circle" : "ellipse-outline"} size={24} color={task.complete ? colors.success : colors.muted} /></View>) : <Text style={[styles.empty, { color: colors.muted }]}>No tasks planned for this date.</Text>}</View>
 
         <Pressable onPress={() => router.push("/task-editor")} style={({ pressed }) => [styles.captureButton, { backgroundColor: colors.warning }, pressed && styles.pressed]}><Ionicons name="add" size={22} color="#FFFFFF" /><Text style={styles.captureText}>Capture a task</Text></Pressable>
+        <Pressable onPress={() => Alert.alert("Daily note", selectedTasks.length ? selectedTasks.map((task) => `• ${task.title}`).join("\\n") : "No tasks planned for this date yet.")} style={({ pressed }) => [styles.noteButton, { borderColor: colors.primary }, pressed && styles.pressed]}><Ionicons name="document-text-outline" size={20} color={colors.primary} /><Text style={[styles.noteText, { color: colors.primary }]}>Generate Note</Text></Pressable>
       </ScrollView>
     </ScreenContainer>
   );
@@ -99,5 +100,8 @@ const styles = StyleSheet.create({
   taskTime: { fontSize: 12 },
   captureButton: { height: 52, borderRadius: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   captureText: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
+  noteButton: { height: 52, borderRadius: 18, borderWidth: 1.5, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 10 },
+  noteText: { fontSize: 15, fontWeight: "800" },
+  empty: { textAlign: "center", paddingVertical: 22, fontSize: 13 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });
