@@ -1,4 +1,4 @@
-import { View, type ViewProps } from "react-native";
+import { useWindowDimensions, View, type ViewProps } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 import { cn } from "@/lib/utils";
@@ -38,6 +38,8 @@ export interface ScreenContainerProps extends ViewProps {
  * </ScreenContainer>
  * ```
  */
+const styles = { tabletContent: { width: "100%" as const, maxWidth: 1024, alignSelf: "center" as const } };
+
 export function ScreenContainer({
   children,
   edges = ["top", "left", "right"],
@@ -47,6 +49,8 @@ export function ScreenContainer({
   style,
   ...props
 }: ScreenContainerProps) {
+  const { width } = useWindowDimensions();
+  const tabletContent = width >= 768;
   return (
     <View
       className={cn(
@@ -61,7 +65,7 @@ export function ScreenContainer({
         className={cn("flex-1", safeAreaClassName)}
         style={style}
       >
-        <View className={cn("flex-1", className)}>{children}</View>
+        <View style={tabletContent ? styles.tabletContent : undefined} className={cn("flex-1", className)}>{children}</View>
       </SafeAreaView>
     </View>
   );

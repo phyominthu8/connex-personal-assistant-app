@@ -4,12 +4,17 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 const KEY = "personal-assistant.preferences.v2";
 export const ACCENT_PALETTES = ["#4F46E5", "#0F766E", "#C2410C", "#BE185D", "#7C3AED"] as const;
 export type AccentPalette = (typeof ACCENT_PALETTES)[number];
-export type Preferences = { notifications: boolean; darkMode: boolean; accent: string; timezone: string; sound: boolean; vibration: boolean };
-const defaults: Preferences = { notifications: true, darkMode: false, accent: "#4F46E5", timezone: "UTC", sound: true, vibration: true };
+export type Preferences = { name: string; email: string; notifications: boolean; darkMode: boolean; accent: string; timezone: string; sound: boolean; vibration: boolean };
+const defaults: Preferences = { name: "", email: "", notifications: true, darkMode: false, accent: "#4F46E5", timezone: "UTC", sound: true, vibration: true };
+export function normalizeProfileName(value: unknown) { return typeof value === "string" ? value.trim().slice(0, 80) : ""; }
+export function normalizeProfileEmail(value: unknown) { return typeof value === "string" ? value.trim().toLowerCase().slice(0, 320) : ""; }
+export function isValidProfileEmail(value: string) { return value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); }
 
 export function normalizePreferences(raw: unknown): Preferences {
   const value = raw && typeof raw === "object" ? raw as Partial<Preferences> : {};
   return {
+    name: normalizeProfileName(value.name),
+    email: normalizeProfileEmail(value.email),
     notifications: typeof value.notifications === "boolean" ? value.notifications : defaults.notifications,
     darkMode: typeof value.darkMode === "boolean" ? value.darkMode : defaults.darkMode,
     accent: ACCENT_PALETTES.includes(value.accent as AccentPalette) ? value.accent as string : defaults.accent,

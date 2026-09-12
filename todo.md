@@ -394,3 +394,21 @@
 - [x] Add deterministic notification verification tests
 - [x] Validate web safety and native-ready TypeScript behavior
 - [x] Save the notification verification checkpoint
+
+## General Settings profile and preferences
+
+- [ ] Add persisted user name and email fields to preferences
+- [ ] Add editable General Settings profile form
+- [ ] Display the saved name and email in the Settings profile card
+- [ ] Keep theme, accent, timezone, sound, vibration, and notification controls available
+- [ ] Add name/email validation and persistence tests
+- [ ] Validate the General Settings screen and save a checkpoint
+
+## Responsive phone and tablet layouts
+
+- [x] Audit shared screen containers, typography, navigation, forms, lists, calendars, and modals
+- [x] Add adaptive content widths and tablet gutters
+- [x] Make typography and controls scale safely across device sizes
+- [x] Improve phone and tablet layouts for task, project, milestone, settings, and calendar screens
+- [x] Validate representative iPhone, iPad, Android phone, and Android tablet viewports
+- [ ] Save the responsive layout checkpoint
