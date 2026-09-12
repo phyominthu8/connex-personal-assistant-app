@@ -1,12 +1,16 @@
-import { Colors, type ColorScheme, type ThemeColorPalette } from "@/constants/theme";
+import { useMemo } from "react";
 import { useColorScheme } from "./use-color-scheme";
+import { Colors, type ColorScheme, type ThemeColorPalette } from "@/constants/theme";
+import { usePreferences } from "@/lib/preferences";
 
-/**
- * Returns the current theme's color palette.
- * Usage: const colors = useColors(); then colors.text, colors.background, etc.
- */
 export function useColors(colorSchemeOverride?: ColorScheme): ThemeColorPalette {
-  const colorSchema = useColorScheme();
-  const scheme = (colorSchemeOverride ?? colorSchema ?? "light") as ColorScheme;
-  return Colors[scheme];
+  const colorScheme = useColorScheme();
+  const { preferences } = usePreferences();
+  const scheme = (colorSchemeOverride ?? colorScheme ?? "light") as ColorScheme;
+  return useMemo(() => ({
+    ...Colors[scheme],
+    primary: preferences.accent,
+    tint: preferences.accent,
+    tabIconSelected: preferences.accent,
+  }), [preferences.accent, scheme]);
 }

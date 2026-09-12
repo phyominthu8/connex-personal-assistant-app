@@ -49,8 +49,8 @@
 ## Settings and account modes
 
 - [x] Build Profile and Settings screen
-- [ ] Add light/dark mode and accent palette persistence
-- [ ] Add timezone, sound, vibration, and notification preferences
+- [x] Add light/dark mode and accent palette persistence
+- [x] Add timezone, sound, vibration, and notification preferences
 - [ ] Support guest and normal-login local sessions
 - [ ] Verify authenticated navigation and logout behavior
 - [ ] Defer or separately scope cloud account, OAuth, email, and phone automation
@@ -346,3 +346,21 @@
 - [x] Apply the reviewed migration to the database
 - [x] Validate schema, TypeScript, API behavior, and regression tests
 - [x] Save the database integrity checkpoint
+
+## Task-management essentials audit
+
+- [x] Reconcile essential task CRUD, detail, editor, filters, sorting, and persistence against the current implementation
+- [x] Check task/project/milestone relationship behavior and data integrity
+- [x] Check reminders, notifications, recurring tasks, and calendar integration
+- [x] Check loading, empty, error, offline, and authentication states
+- [x] Identify first-release task gaps and prioritize implementation
+
+## Settings preference persistence update
+
+- [x] Persist light/dark appearance mode
+- [x] Persist accent palette selection
+- [x] Persist timezone preference and auto-detection
+- [x] Persist sound and vibration preferences
+- [x] Persist notification preference and connect it to reminder behavior
+- [x] Add settings preference regression tests
+- [x] Validate settings persistence and mark verified steps complete

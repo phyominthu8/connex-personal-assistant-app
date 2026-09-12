@@ -3,6 +3,7 @@ import { Appearance, View, useColorScheme as useSystemColorScheme } from "react-
 import { colorScheme as nativewindColorScheme, vars } from "nativewind";
 
 import { SchemeColors, type ColorScheme } from "@/constants/theme";
+import { usePreferences } from "@/lib/preferences";
 
 type ThemeContextValue = {
   colorScheme: ColorScheme;
@@ -13,7 +14,11 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useSystemColorScheme() ?? "light";
+  const { preferences } = usePreferences();
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(systemScheme);
+
+  const accent = preferences.accent;
+  const paletteFor = useCallback((scheme: ColorScheme) => ({ ...SchemeColors[scheme], primary: accent }), [accent]);
 
   const applyScheme = useCallback((scheme: ColorScheme) => {
     nativewindColorScheme.set(scheme);
@@ -22,12 +27,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const root = document.documentElement;
       root.dataset.theme = scheme;
       root.classList.toggle("dark", scheme === "dark");
-      const palette = SchemeColors[scheme];
+      const palette = paletteFor(scheme);
       Object.entries(palette).forEach(([token, value]) => {
         root.style.setProperty(`--color-${token}`, value);
       });
     }
-  }, []);
+  }, [paletteFor]);
 
   const setColorScheme = useCallback((scheme: ColorScheme) => {
     setColorSchemeState(scheme);
@@ -35,23 +40,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [applyScheme]);
 
   useEffect(() => {
-    applyScheme(colorScheme);
-  }, [applyScheme, colorScheme]);
+    const nextScheme = preferences.darkMode ? "dark" : "light";
+    if (nextScheme !== colorScheme) setColorSchemeState(nextScheme);
+    applyScheme(nextScheme);
+  }, [applyScheme, colorScheme, preferences.darkMode]);
 
   const themeVariables = useMemo(
     () =>
       vars({
-        "color-primary": SchemeColors[colorScheme].primary,
-        "color-background": SchemeColors[colorScheme].background,
-        "color-surface": SchemeColors[colorScheme].surface,
-        "color-foreground": SchemeColors[colorScheme].foreground,
-        "color-muted": SchemeColors[colorScheme].muted,
-        "color-border": SchemeColors[colorScheme].border,
-        "color-success": SchemeColors[colorScheme].success,
-        "color-warning": SchemeColors[colorScheme].warning,
-        "color-error": SchemeColors[colorScheme].error,
+        "color-primary": accent,
+        "color-background": paletteFor(colorScheme).background,
+        "color-surface": paletteFor(colorScheme).surface,
+        "color-foreground": paletteFor(colorScheme).foreground,
+        "color-muted": paletteFor(colorScheme).muted,
+        "color-border": paletteFor(colorScheme).border,
+        "color-success": paletteFor(colorScheme).success,
+        "color-warning": paletteFor(colorScheme).warning,
+        "color-error": paletteFor(colorScheme).error,
       }),
-    [colorScheme],
+    [accent, colorScheme, paletteFor],
   );
 
   const value = useMemo(
@@ -61,7 +68,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }),
     [colorScheme, setColorScheme],
   );
-  console.log(value, themeVariables)
 
   return (
     <ThemeContext.Provider value={value}>
