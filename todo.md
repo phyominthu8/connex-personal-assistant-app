@@ -326,3 +326,13 @@
 - [x] Preserve stable project/task/milestone relationships and optional assignment behavior
 - [x] Add project and milestone workflow regression tests
 - [x] Validate and checkpoint the completed workflow
+
+## Data integrity and authorization hardening
+
+- [x] Validate project ownership for authenticated project-linked task writes
+- [x] Validate project and milestone ownership for authenticated task writes
+- [x] Validate milestone ownership and project consistency on milestone updates
+- [x] Define safe cleanup for linked tasks and milestones when deleting a project
+- [x] Prevent orphaned project and milestone relationships
+- [x] Add authorization and integrity regression tests
+- [x] Validate and checkpoint the security hardening update

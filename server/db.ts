@@ -94,6 +94,12 @@ export async function listTasksForUser(userId: number): Promise<Task[]> {
   if (!db) return [];
   return db.select().from(tasks).where(eq(tasks.userId, userId));
 }
+export async function getTaskForUser(userId: number, id: number): Promise<Task | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(tasks).where(and(eq(tasks.id, id), eq(tasks.userId, userId))).limit(1);
+  return rows[0];
+}
 
 export async function createTask(data: InsertTask): Promise<number> {
   const db = await getDb();
@@ -138,9 +144,10 @@ export async function deleteAlarmForUser(userId: number, id: number): Promise<vo
 
 export async function listProjectsForUser(userId: number): Promise<Project[]> { const db = await getDb(); if (!db) return []; return db.select().from(projects).where(eq(projects.userId, userId)); }
 export async function getProjectForUser(userId: number, id: number): Promise<Project | undefined> { const db = await getDb(); if (!db) return undefined; const rows = await db.select().from(projects).where(and(eq(projects.id, id), eq(projects.userId, userId))).limit(1); return rows[0]; }
+export async function getMilestoneForUser(userId: number, id: number): Promise<Milestone | undefined> { const db = await getDb(); if (!db) return undefined; const rows = await db.select().from(milestones).where(and(eq(milestones.id, id), eq(milestones.userId, userId))).limit(1); return rows[0]; }
 export async function createProject(data: InsertProject): Promise<number> { const db = await getDb(); if (!db) throw new Error("Database not available"); const result = await db.insert(projects).values(data); return Number(result[0].insertId); }
 export async function updateProjectForUser(userId: number, id: number, data: Partial<Pick<InsertProject, "title" | "description" | "startDate" | "endDate" | "type" | "status" | "color" | "icon">>): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.update(projects).set(data).where(and(eq(projects.id, id), eq(projects.userId, userId))); }
-export async function deleteProjectForUser(userId: number, id: number): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.delete(projects).where(and(eq(projects.id, id), eq(projects.userId, userId))); }
+export async function deleteProjectForUser(userId: number, id: number): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); const project = await getProjectForUser(userId, id); if (!project) return; await db.transaction(async (tx) => { await tx.update(tasks).set({ projectId: null, milestoneId: null }).where(and(eq(tasks.userId, userId), eq(tasks.projectId, id))); await tx.delete(milestones).where(and(eq(milestones.userId, userId), eq(milestones.projectId, id))); await tx.delete(projects).where(and(eq(projects.id, id), eq(projects.userId, userId))); }); }
 export async function listMilestonesForProject(userId: number, projectId: number): Promise<Milestone[]> { const db = await getDb(); if (!db) return []; return db.select().from(milestones).where(and(eq(milestones.userId, userId), eq(milestones.projectId, projectId))); }
 export async function createMilestone(data: InsertMilestone): Promise<number> { const db = await getDb(); if (!db) throw new Error("Database not available"); const result = await db.insert(milestones).values(data); return Number(result[0].insertId); }
 export async function updateMilestoneForUser(userId: number, id: number, data: Partial<Pick<InsertMilestone, "title" | "dueDate" | "reminderAt" | "completed">>): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.update(milestones).set(data).where(and(eq(milestones.id, id), eq(milestones.userId, userId))); }
