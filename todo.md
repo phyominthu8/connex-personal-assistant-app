@@ -299,3 +299,19 @@
 - [x] Add project health/status indicators derived from project progress and dates
 - [x] Add deterministic project timeline and status tests
 - [x] Validate project interface behavior and save a checkpoint
+
+## Project management necessity audit
+
+- [x] Reconcile project-management checklist items against the current implementation
+- [x] Identify launch-blocking project-management gaps
+- [x] Identify quality, security, and usability follow-up work
+- [x] Prioritize the remaining project-management roadmap
+
+## Task Detail and standalone Task Editor implementation
+
+- [x] Verify Task Detail route and task data loading for local and authenticated tasks
+- [x] Verify Task Detail completion, edit, and delete actions
+- [x] Verify standalone Task Editor create and edit modes
+- [x] Verify task validation, date/time fields, and persistence
+- [x] Verify project and optional milestone relationship fields without automatic milestone assignment
+- [x] Add or update regression tests and validate the screens
