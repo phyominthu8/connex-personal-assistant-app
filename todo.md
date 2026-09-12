@@ -383,3 +383,14 @@
 - [x] Respect notification, sound, vibration, and timezone preferences
 - [x] Add deadline reminder regression tests
 - [x] Validate and checkpoint project deadline reminders
+
+## Native notification-device verification
+
+- [x] Audit iOS and Android notification permission and channel behavior
+- [x] Add native notification diagnostics and permission status reporting
+- [x] Add Android notification channel readiness verification
+- [x] Add a test notification action for native devices
+- [x] Add settings UI for notification-device verification
+- [x] Add deterministic notification verification tests
+- [x] Validate web safety and native-ready TypeScript behavior
+- [x] Save the notification verification checkpoint
