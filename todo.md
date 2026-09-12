@@ -315,3 +315,14 @@
 - [x] Verify task validation, date/time fields, and persistence
 - [x] Verify project and optional milestone relationship fields without automatic milestone assignment
 - [x] Add or update regression tests and validate the screens
+
+## Core project and milestone workflow completion
+
+- [x] Add project start/end date editing and validation
+- [x] Add project status editing for Active, Completed, On Hold, and Archived
+- [x] Connect authenticated Projects list and Project Detail data with local fallback
+- [x] Add milestone due-date and reminder fields to create/edit flows
+- [x] Add milestone edit, completion, and delete behavior in local and authenticated modes
+- [x] Preserve stable project/task/milestone relationships and optional assignment behavior
+- [x] Add project and milestone workflow regression tests
+- [x] Validate and checkpoint the completed workflow

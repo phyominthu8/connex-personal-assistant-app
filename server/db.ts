@@ -137,6 +137,7 @@ export async function deleteAlarmForUser(userId: number, id: number): Promise<vo
 }
 
 export async function listProjectsForUser(userId: number): Promise<Project[]> { const db = await getDb(); if (!db) return []; return db.select().from(projects).where(eq(projects.userId, userId)); }
+export async function getProjectForUser(userId: number, id: number): Promise<Project | undefined> { const db = await getDb(); if (!db) return undefined; const rows = await db.select().from(projects).where(and(eq(projects.id, id), eq(projects.userId, userId))).limit(1); return rows[0]; }
 export async function createProject(data: InsertProject): Promise<number> { const db = await getDb(); if (!db) throw new Error("Database not available"); const result = await db.insert(projects).values(data); return Number(result[0].insertId); }
 export async function updateProjectForUser(userId: number, id: number, data: Partial<Pick<InsertProject, "title" | "description" | "startDate" | "endDate" | "type" | "status" | "color" | "icon">>): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.update(projects).set(data).where(and(eq(projects.id, id), eq(projects.userId, userId))); }
 export async function deleteProjectForUser(userId: number, id: number): Promise<void> { const db = await getDb(); if (!db) throw new Error("Database not available"); await db.delete(projects).where(and(eq(projects.id, id), eq(projects.userId, userId))); }
