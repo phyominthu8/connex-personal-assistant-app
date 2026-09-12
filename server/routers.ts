@@ -7,6 +7,12 @@ import { z } from "zod";
 import { isValidDateKey, isValidTime } from "../lib/task-date";
 import { assertTaskRelationshipIntegrity } from "../lib/task-relationships";
 
+async function validateAlarmRelationships(userId: number, taskId: number | null | undefined, projectId: number | null | undefined) {
+  if (taskId != null && projectId != null) throw new Error("An alarm can reference a task or project, not both");
+  if (taskId != null && !(await db.getTaskForUser(userId, taskId))) throw new Error("Task not found");
+  if (projectId != null && !(await db.getProjectForUser(userId, projectId))) throw new Error("Project not found");
+}
+
 async function validateTaskRelationships(userId: number, projectId: number | null | undefined, milestoneId: number | null | undefined) {
   const project = projectId == null ? undefined : await db.getProjectForUser(userId, projectId);
   const milestone = milestoneId == null ? undefined : await db.getMilestoneForUser(userId, milestoneId);
@@ -76,8 +82,8 @@ export const appRouter = router({
   }),
   alarms: router({
     list: protectedProcedure.query(({ ctx }) => db.listAlarmsForUser(ctx.user.id)),
-    create: protectedProcedure.input(z.object({ title: z.string().trim().min(1).max(255), taskId: z.number().int().positive().optional(), fireAt: z.coerce.date(), enabled: z.boolean().default(true) })).mutation(async ({ ctx, input }) => { if (input.taskId != null && !(await db.getTaskForUser(ctx.user.id, input.taskId))) throw new Error("Task not found"); return db.createAlarm({ ...input, userId: ctx.user.id }); }),
-    update: protectedProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(1).max(255).optional(), fireAt: z.coerce.date().optional(), enabled: z.boolean().optional() })).mutation(({ ctx, input }) => { const { id, ...data } = input; return db.updateAlarmForUser(ctx.user.id, id, data); }),
+    create: protectedProcedure.input(z.object({ title: z.string().trim().min(1).max(255), taskId: z.number().int().positive().optional(), projectId: z.number().int().positive().optional(), fireAt: z.coerce.date(), enabled: z.boolean().default(true) })).mutation(async ({ ctx, input }) => { await validateAlarmRelationships(ctx.user.id, input.taskId, input.projectId); return db.createAlarm({ ...input, userId: ctx.user.id }); }),
+    update: protectedProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(1).max(255).optional(), taskId: z.number().int().positive().nullable().optional(), projectId: z.number().int().positive().nullable().optional(), fireAt: z.coerce.date().optional(), enabled: z.boolean().optional() })).mutation(async ({ ctx, input }) => { const existing = await db.getAlarmForUser(ctx.user.id, input.id); if (!existing) throw new Error("Alarm not found"); const taskId = input.taskId !== undefined ? input.taskId : existing.taskId; const projectId = input.projectId !== undefined ? input.projectId : existing.projectId; await validateAlarmRelationships(ctx.user.id, taskId, projectId); const { id, ...data } = input; return db.updateAlarmForUser(ctx.user.id, id, data); }),
     delete: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteAlarmForUser(ctx.user.id, input.id)),
   }),
 });

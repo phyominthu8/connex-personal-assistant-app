@@ -47,6 +47,7 @@ export const alarms = mysqlTable("alarms", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   taskId: int("taskId"),
+  projectId: int("projectId"),
   title: varchar("title", { length: 255 }).notNull(),
   fireAt: timestamp("fireAt").notNull(),
   enabled: boolean("enabled").notNull().default(true),
@@ -55,8 +56,11 @@ export const alarms = mysqlTable("alarms", {
 }, (table) => [
   index("alarms_user_idx").on(table.userId),
   index("alarms_task_idx").on(table.taskId),
+  index("alarms_project_idx").on(table.projectId),
+  index("alarms_user_project_idx").on(table.userId, table.projectId),
   index("alarms_user_enabled_fire_idx").on(table.userId, table.enabled, table.fireAt),
   foreignKey({ name: "alarms_task_fk", columns: [table.taskId], foreignColumns: [tasks.id] }).onDelete("set null"),
+  foreignKey({ name: "alarms_project_fk", columns: [table.projectId], foreignColumns: [projects.id] }).onDelete("set null"),
 ]);
 export type Alarm = typeof alarms.$inferSelect;
 export type InsertAlarm = typeof alarms.$inferInsert;

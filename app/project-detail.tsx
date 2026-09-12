@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { trpc } from "@/lib/trpc";
 import { isValidDateKey } from "@/lib/task-date";
 import { ProjectTimeline } from "@/components/project-timeline";
+import { usePreferences } from "@/lib/preferences";
+import { syncProjectDeadlineReminder, cancelProjectDeadlineReminder, projectDeadlineDate } from "@/lib/project-deadline-reminders";
 
 const statuses = ["active", "completed", "on_hold", "archived"] as const;
 type ProjectStatus = typeof statuses[number];
@@ -20,12 +22,17 @@ export default function ProjectDetailScreen() {
   const { projects: localProjects, milestones: localMilestones, updateProject, deleteProject, addMilestone, updateMilestone, deleteMilestone } = useProjects();
   const { tasks: localTasks } = useLocalTasks();
   const { user } = useAuth();
+  const { preferences } = usePreferences();
   const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const serverTasksQuery = trpc.tasks.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const serverProject = serverProjectsQuery.data?.find((item) => String(item.id) === params.projectId);
   const serverMilestonesQuery = trpc.projects.milestones.useQuery({ projectId: Number(params.projectId) }, { enabled: Boolean(user && serverProject), retry: false });
   const updateProjectMutation = trpc.projects.update.useMutation({ onSuccess: () => void serverProjectsQuery.refetch() });
   const deleteProjectMutation = trpc.projects.delete.useMutation({ onSuccess: () => { void serverProjectsQuery.refetch(); router.back(); } });
+  const alarmsQuery = trpc.alarms.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
+  const createAlarmMutation = trpc.alarms.create.useMutation({ onSuccess: () => void alarmsQuery.refetch() });
+  const updateAlarmMutation = trpc.alarms.update.useMutation({ onSuccess: () => void alarmsQuery.refetch() });
+  const deleteAlarmMutation = trpc.alarms.delete.useMutation({ onSuccess: () => void alarmsQuery.refetch() });
   const createMilestoneMutation = trpc.projects.createMilestone.useMutation({ onSuccess: () => void serverMilestonesQuery.refetch() });
   const updateMilestoneMutation = trpc.projects.updateMilestone.useMutation({ onSuccess: () => void serverMilestonesQuery.refetch() });
   const deleteMilestoneMutation = trpc.projects.deleteMilestone.useMutation({ onSuccess: () => void serverMilestonesQuery.refetch() });
@@ -51,6 +58,18 @@ export default function ProjectDetailScreen() {
     if (params.edit === "1") setEditVisible(true);
   }, [project?.id, params.edit]);
 
+  useEffect(() => {
+    if (!project) return;
+    void syncProjectDeadlineReminder(project.id, project.title, project.endDate, true, preferences);
+  }, [project?.id, project?.title, project?.endDate, preferences.notifications, preferences.sound, preferences.vibration]);
+
+  useEffect(() => {
+    if (!user || !serverProject || !alarmsQuery.isSuccess || !serverProject.endDate) return;
+    const existing = (alarmsQuery.data || []).find((alarm) => alarm.projectId === serverProject.id && alarm.taskId == null);
+    if (existing || !projectDeadlineDate(serverProject.endDate)) return;
+    void createAlarmMutation.mutateAsync({ title: `${serverProject.title} deadline`, projectId: serverProject.id, fireAt: projectDeadlineDate(serverProject.endDate)!, enabled: preferences.notifications });
+  }, [user, serverProject?.id, serverProject?.endDate, alarmsQuery.isSuccess, alarmsQuery.data?.length, preferences.notifications]);
+
   if (!project) return <ScreenContainer className="px-5" containerClassName="bg-background"><View style={styles.state}><Text style={[styles.stateTitle, { color: colors.foreground }]}>Project not found</Text><Text style={[styles.stateText, { color: colors.muted }]}>This project may have been deleted or is not available in this session.</Text><Pressable onPress={() => router.back()} style={[styles.primaryButton, { backgroundColor: colors.primary }]}><Text style={styles.primaryText}>Go back</Text></Pressable></View></ScreenContainer>;
 
   const completedTasks = linkedTasks.filter((task) => task.complete).length;
@@ -60,12 +79,21 @@ export default function ProjectDetailScreen() {
   const statusLabel = status === "on_hold" ? "On Hold" : status[0].toUpperCase() + status.slice(1);
 
   const openEdit = () => { setTitle(project.title); setDescription(project.description || ""); setStartDate(project.startDate || ""); setEndDate(project.endDate || ""); setStatus(project.status); setEditVisible(true); };
+  const syncDeadline = async (projectId: string, projectTitle: string, deadline: string | undefined, serverId?: number) => {
+    await syncProjectDeadlineReminder(projectId, projectTitle, deadline, true, preferences);
+    if (!user || !serverId) return;
+    const existing = (alarmsQuery.data || []).find((alarm) => alarm.projectId === serverId && alarm.taskId == null);
+    const fireAt = projectDeadlineDate(deadline);
+    if (!fireAt) { if (existing) await deleteAlarmMutation.mutateAsync({ id: existing.id }); return; }
+    if (existing) await updateAlarmMutation.mutateAsync({ id: existing.id, title: `${projectTitle} deadline`, fireAt, enabled: preferences.notifications });
+    else await createAlarmMutation.mutateAsync({ title: `${projectTitle} deadline`, projectId: serverId, fireAt, enabled: preferences.notifications });
+  };
   const saveEdit = async () => {
     if (!title.trim()) return Alert.alert("Project title required", "Add a name before saving.");
     if ((startDate && !isValidDateKey(startDate)) || (endDate && !isValidDateKey(endDate))) return Alert.alert("Invalid dates", "Use YYYY-MM-DD for project dates.");
     if (startDate && endDate && startDate > endDate) return Alert.alert("Invalid date range", "The end date must be on or after the start date.");
     const input = { title: title.trim(), description: description.trim(), startDate: startDate || undefined, endDate: endDate || undefined, status };
-    if (user && serverProject) await updateProjectMutation.mutateAsync({ id: serverProject.id, ...input }); else await updateProject(project.id, input);
+    if (user && serverProject) { await updateProjectMutation.mutateAsync({ id: serverProject.id, ...input }); await syncDeadline(String(serverProject.id), input.title, input.endDate, serverProject.id); } else { await updateProject(project.id, input); await syncDeadline(project.id, input.title, input.endDate); }
     setEditVisible(false);
   };
   const openMilestone = (milestone?: LocalMilestone) => { setMilestoneId(milestone?.id || null); setMilestoneTitle(milestone?.title || ""); setMilestoneDueDate(milestone?.dueDate || ""); setMilestoneReminderAt(milestone?.reminderAt || ""); setMilestoneVisible(true); };
@@ -81,7 +109,7 @@ export default function ProjectDetailScreen() {
   };
   const toggleMilestone = async (milestone: LocalMilestone) => { if (user && serverProject) await updateMilestoneMutation.mutateAsync({ id: Number(milestone.id), completed: !milestone.completed }); else await updateMilestone(milestone.id, { completed: !milestone.completed }); };
   const removeMilestone = (milestone: LocalMilestone) => Alert.alert("Delete milestone?", "This cannot be undone.", [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => { if (user && serverProject) void deleteMilestoneMutation.mutateAsync({ id: Number(milestone.id) }); else void deleteMilestone(milestone.id); } }]);
-  const removeProject = () => Alert.alert("Delete project?", `Remove ${project.title} and its milestones?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => { if (user && serverProject) void deleteProjectMutation.mutateAsync({ id: serverProject.id }); else void deleteProject(project.id).then(() => router.back()); } }]);
+  const removeProject = () => Alert.alert("Delete project?", `Remove ${project.title} and its milestones?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: async () => { await cancelProjectDeadlineReminder(project.id); if (user && serverProject) { const existing = (alarmsQuery.data || []).find((alarm) => alarm.projectId === serverProject.id && alarm.taskId == null); if (existing) await deleteAlarmMutation.mutateAsync({ id: existing.id }); await deleteProjectMutation.mutateAsync({ id: serverProject.id }); } else { await deleteProject(project.id); router.back(); } } }]);
 
   return <ScreenContainer edges={["top", "bottom", "left", "right"]} className="px-5" containerClassName="bg-background"><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
     <View style={styles.header}><Pressable onPress={() => router.back()} style={styles.iconButton}><Ionicons name="chevron-back" size={21} color={colors.foreground} /></Pressable><Text style={[styles.headerTitle, { color: colors.foreground }]}>Project detail</Text><Pressable onPress={openEdit} style={styles.iconButton} accessibilityLabel="Edit project"><Ionicons name="create-outline" size={20} color={colors.foreground} /></Pressable></View>

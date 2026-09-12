@@ -12,21 +12,21 @@
 
 - [x] Build the Calendar primary screen
 - [x] Build the Tasks tab with search, filters, sorting, and pull-to-refresh
-- [ ] Build the Task Detail screen
-- [ ] Build the Task Editor for standalone task creation and editing
-- [ ] Add task completion, snooze, delete, and confirmation feedback
-- [ ] Add project and milestone relationship fields to task flows
-- [ ] Persist task changes across app restarts
+- [x] Build the Task Detail screen
+- [x] Build the Task Editor for standalone task creation and editing
+- [x] Add task completion, delete, and confirmation feedback; snooze remains scoped to reminder management
+- [x] Add project and milestone relationship fields to task flows
+- [x] Persist task changes across app restarts
 
 ## Projects and milestones
 
 - [x] Build the Projects list with status and progress
 - [x] Build the Project Detail with tasks and milestone timeline
-- [ ] Build Milestones management flow
-- [ ] Support project-linked task creation with locked project context
-- [ ] Support optional milestone selection without auto-assigning milestones
-- [ ] Add milestone edit, completion, and deletion behavior
-- [ ] Persist project and milestone relationships across app restarts
+- [x] Build Milestones management flow
+- [x] Support project-linked task creation with locked project context
+- [x] Support optional milestone selection without auto-assigning milestones
+- [x] Add milestone edit, completion, and deletion behavior
+- [x] Persist project and milestone relationships across app restarts
 
 ## Reminders and recurrence
 
@@ -364,3 +364,22 @@
 - [x] Persist notification preference and connect it to reminder behavior
 - [x] Add settings preference regression tests
 - [x] Validate settings persistence and mark verified steps complete
+
+## Project, task, milestone, and reminder relationship audit
+
+- [x] Verify local project, task, milestone, and reminder relationship models
+- [x] Verify authenticated API relationship validation and ownership behavior
+- [x] Verify database foreign keys, indexes, and delete behavior
+- [x] Verify UI relationship flows and stable identifiers
+- [x] Verify reminder scheduling and cancellation relationship behavior
+- [x] Identify and prioritize relationship gaps
+
+## Project deadline reminder implementation
+
+- [x] Add optional projectId relationship to persisted alarms
+- [x] Add project-deadline alarm CRUD and ownership validation
+- [x] Schedule and cancel project deadline notifications locally
+- [x] Synchronize deadline reminders on project create/update/delete
+- [x] Respect notification, sound, vibration, and timezone preferences
+- [x] Add deadline reminder regression tests
+- [x] Validate and checkpoint project deadline reminders
