@@ -411,4 +411,4 @@
 - [x] Make typography and controls scale safely across device sizes
 - [x] Improve phone and tablet layouts for task, project, milestone, settings, and calendar screens
 - [x] Validate representative iPhone, iPad, Android phone, and Android tablet viewports
-- [ ] Save the responsive layout checkpoint
+- [x] Save the responsive layout checkpoint
