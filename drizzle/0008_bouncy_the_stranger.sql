@@ -1,0 +1,1 @@
+-- No-op migration. The previous generated migration was not applied because the live database has no users table; relationship constraints are defined in 0007_wise_night_nurse.sql.

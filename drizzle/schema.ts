@@ -1,17 +1,7 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, foreignKey, index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -21,7 +11,6 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
@@ -42,8 +31,15 @@ export const tasks = mysqlTable("tasks", {
   completed: boolean("completed").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
+}, (table) => [
+  index("tasks_user_idx").on(table.userId),
+  index("tasks_project_idx").on(table.projectId),
+  index("tasks_milestone_idx").on(table.milestoneId),
+  index("tasks_user_project_idx").on(table.userId, table.projectId),
+  index("tasks_user_milestone_idx").on(table.userId, table.milestoneId),
+  foreignKey({ name: "tasks_project_fk", columns: [table.projectId], foreignColumns: [projects.id] }).onDelete("set null"),
+  foreignKey({ name: "tasks_milestone_fk", columns: [table.milestoneId], foreignColumns: [milestones.id] }).onDelete("set null"),
+]);
 export type Task = typeof tasks.$inferSelect;
 export type InsertTask = typeof tasks.$inferInsert;
 
@@ -56,8 +52,12 @@ export const alarms = mysqlTable("alarms", {
   enabled: boolean("enabled").notNull().default(true),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
+}, (table) => [
+  index("alarms_user_idx").on(table.userId),
+  index("alarms_task_idx").on(table.taskId),
+  index("alarms_user_enabled_fire_idx").on(table.userId, table.enabled, table.fireAt),
+  foreignKey({ name: "alarms_task_fk", columns: [table.taskId], foreignColumns: [tasks.id] }).onDelete("set null"),
+]);
 export type Alarm = typeof alarms.$inferSelect;
 export type InsertAlarm = typeof alarms.$inferInsert;
 
@@ -74,7 +74,10 @@ export const projects = mysqlTable("projects", {
   icon: varchar("icon", { length: 32 }).notNull().default("folder"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => [
+  index("projects_user_idx").on(table.userId),
+  index("projects_user_status_idx").on(table.userId, table.status),
+]);
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
 
@@ -88,6 +91,12 @@ export const milestones = mysqlTable("milestones", {
   completed: boolean("completed").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => [
+  index("milestones_user_idx").on(table.userId),
+  index("milestones_project_idx").on(table.projectId),
+  index("milestones_user_project_idx").on(table.userId, table.projectId),
+  index("milestones_user_due_idx").on(table.userId, table.dueDate),
+  foreignKey({ name: "milestones_project_fk", columns: [table.projectId], foreignColumns: [projects.id] }).onDelete("cascade"),
+]);
 export type Milestone = typeof milestones.$inferSelect;
 export type InsertMilestone = typeof milestones.$inferInsert;

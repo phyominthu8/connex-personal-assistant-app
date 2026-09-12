@@ -50,6 +50,20 @@
       "when": 1788343313387,
       "tag": "0006_tiny_ultragirl",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1789192492378,
+      "tag": "0007_wise_night_nurse",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1789192548515,
+      "tag": "0008_bouncy_the_stranger",
+      "breakpoints": true
     }
   ]
 }

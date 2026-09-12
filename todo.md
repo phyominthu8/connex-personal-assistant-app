@@ -336,3 +336,13 @@
 - [x] Prevent orphaned project and milestone relationships
 - [x] Add authorization and integrity regression tests
 - [x] Validate and checkpoint the security hardening update
+
+## Database foreign keys and relationship indexes
+
+- [x] Audit project, task, milestone, alarm, and user relationship constraints
+- [x] Add explicit foreign keys with safe delete behavior
+- [x] Add explicit indexes for relationship and ownership queries
+- [x] Generate and review the non-destructive migration
+- [x] Apply the reviewed migration to the database
+- [x] Validate schema, TypeScript, API behavior, and regression tests
+- [x] Save the database integrity checkpoint
