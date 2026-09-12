@@ -412,3 +412,11 @@
 - [x] Improve phone and tablet layouts for task, project, milestone, settings, and calendar screens
 - [x] Validate representative iPhone, iPad, Android phone, and Android tablet viewports
 - [x] Save the responsive layout checkpoint
+
+## General Settings continuation
+
+- [x] Audit current editable name/email form, persisted preferences, and profile card
+- [x] Add or refine name and email validation behavior
+- [x] Add regression coverage for profile persistence and validation
+- [x] Verify General Settings on phone and tablet layouts
+- [ ] Save the General Settings checkpoint

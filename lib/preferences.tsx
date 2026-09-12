@@ -8,6 +8,7 @@ export type Preferences = { name: string; email: string; notifications: boolean;
 const defaults: Preferences = { name: "", email: "", notifications: true, darkMode: false, accent: "#4F46E5", timezone: "UTC", sound: true, vibration: true };
 export function normalizeProfileName(value: unknown) { return typeof value === "string" ? value.trim().slice(0, 80) : ""; }
 export function normalizeProfileEmail(value: unknown) { return typeof value === "string" ? value.trim().toLowerCase().slice(0, 320) : ""; }
+export function isValidProfileName(value: string) { return value.trim().length <= 80; }
 export function isValidProfileEmail(value: string) { return value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); }
 
 export function normalizePreferences(raw: unknown): Preferences {
