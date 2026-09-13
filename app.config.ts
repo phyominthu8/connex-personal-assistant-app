@@ -28,7 +28,8 @@ const schemeFromBundleId = `manus${timestamp}`;
 
 const env = {
   // App branding - update these values directly (do not use env vars)
-  appName: "Personal Assistant",
+  appName: "Connex",
+  appType: "Personal assistant",
   appSlug: "personal-assistant-app",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
@@ -42,6 +43,7 @@ const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
   version: "1.0.0",
+  description: "Personal assistant for tasks, projects, milestones, calendar, and voice interaction.",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,

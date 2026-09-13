@@ -420,3 +420,9 @@
 - [x] Add regression coverage for profile persistence and validation
 - [x] Verify General Settings on phone and tablet layouts
 - [ ] Save the General Settings checkpoint
+
+## Connex branding update
+
+- [x] Audit current app name, slug, logo URL, and visible personal-assistant branding references
+- [x] Update the display name to Connex without changing the app slug
+- [x] Verify branding configuration and save a checkpoint
