@@ -434,3 +434,11 @@
 - [x] Copy the new logo to icon, splash, favicon, and Android foreground asset locations
 - [x] Update app branding configuration with the new logo URL
 - [x] Validate logo assets and save a checkpoint
+
+## Connex Welcome screen
+
+- [x] Audit current routes and authentication entry points
+- [x] Add branded Welcome screen with the Connex logo
+- [x] Add functional Login button and preserve existing auth route behavior
+- [x] Verify welcome screen on phone and tablet sizes
+- [x] Save the Welcome screen checkpoint
