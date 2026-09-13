@@ -426,3 +426,11 @@
 - [x] Audit current app name, slug, logo URL, and visible personal-assistant branding references
 - [x] Update the display name to Connex without changing the app slug
 - [x] Verify branding configuration and save a checkpoint
+
+## Connex logo replacement
+
+- [x] Audit current logo assets and branding references
+- [x] Generate a cleaner Connex personal-assistant launcher icon
+- [x] Copy the new logo to icon, splash, favicon, and Android foreground asset locations
+- [x] Update app branding configuration with the new logo URL
+- [x] Validate logo assets and save a checkpoint
