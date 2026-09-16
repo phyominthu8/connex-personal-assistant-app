@@ -442,3 +442,11 @@
 - [x] Add functional Login button and preserve existing auth route behavior
 - [x] Verify welcome screen on phone and tablet sizes
 - [x] Save the Welcome screen checkpoint
+
+## Connex logo cleanup from provided reference
+
+- [x] Clean checkerboard background and remove wordmark from the logo area
+- [x] Generate a square symbol-only Connex icon from the provided reference
+- [x] Install the cleaned icon across launcher, splash, favicon, and Android foreground assets
+- [x] Update logo configuration and validate the new assets
+- [x] Save the logo cleanup checkpoint
