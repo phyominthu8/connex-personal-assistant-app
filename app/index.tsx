@@ -5,9 +5,11 @@ import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { startOAuthLogin } from "@/constants/oauth";
+import { usePreferences } from "@/lib/preferences";
 
 export default function WelcomeScreen() {
   const colors = useColors();
+  const { preferences } = usePreferences();
   const [loggingIn, setLoggingIn] = useState(false);
 
   const handleLogin = async () => {
@@ -25,7 +27,7 @@ export default function WelcomeScreen() {
         <View style={styles.hero}>
           <Image source={require("../assets/images/icon.png")} style={styles.logo} accessibilityLabel="Connex logo" />
           <Text style={[styles.eyebrow, { color: colors.primary }]}>YOUR DAY, CONNECTED</Text>
-          <Text style={[styles.title, { color: colors.foreground }]}>Meet Connex</Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>Welcome to Connex{preferences.name ? `\n${preferences.name}` : ""}</Text>
           <Text style={[styles.subtitle, { color: colors.muted }]}>Your personal assistant for tasks, projects, milestones, calendar, and voice.</Text>
         </View>
 

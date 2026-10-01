@@ -6,6 +6,8 @@ import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { QuickSettingsMenu } from "@/components/quick-settings-menu";
 import { useColors } from "@/hooks/use-colors";
+import { usePreferences } from "@/lib/preferences";
+import { formatGreeting } from "@/lib/greeting";
 import { useLocalTasks } from "@/lib/local-store";
 import { toDateKey } from "@/lib/task-date";
 
@@ -14,6 +16,7 @@ const calendarDays = Array.from({ length: 35 }, (_, index) => index + 1);
 
 export default function CalendarScreen() {
   const colors = useColors();
+  const { preferences } = usePreferences();
   const { tasks: localTasks } = useLocalTasks();
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [monthOffset, setMonthOffset] = useState(0);
@@ -28,7 +31,7 @@ export default function CalendarScreen() {
         <View style={styles.header}>
           <View>
             <Text style={[styles.eyebrow, { color: colors.muted }]}>MONDAY, SEPTEMBER 1</Text>
-            <Text style={[styles.title, { color: colors.foreground }]}>Good morning</Text>
+            <Text style={[styles.title, { color: colors.foreground }]}>{formatGreeting(preferences.name)}</Text>
           </View>
           <View style={styles.headerActions} />
         </View>
