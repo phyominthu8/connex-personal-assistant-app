@@ -1,25 +1,13 @@
-import { useState } from "react";
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
-import { startOAuthLogin } from "@/constants/oauth";
 import { usePreferences } from "@/lib/preferences";
 
 export default function WelcomeScreen() {
   const colors = useColors();
   const { preferences } = usePreferences();
-  const [loggingIn, setLoggingIn] = useState(false);
-
-  const handleLogin = async () => {
-    setLoggingIn(true);
-    try {
-      await startOAuthLogin();
-    } finally {
-      setLoggingIn(false);
-    }
-  };
 
   return (
     <ScreenContainer edges={["top", "bottom", "left", "right"]} containerClassName="bg-background">
@@ -32,17 +20,8 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Log in to Connex"
-            disabled={loggingIn}
-            onPress={() => void handleLogin()}
-            style={[styles.primaryButton, { backgroundColor: colors.primary, opacity: loggingIn ? 0.7 : 1 }]}
-          >
-            {loggingIn ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Log in</Text>}
-          </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Continue as guest" onPress={() => router.replace("/(tabs)")} style={styles.secondaryButton}>
-            <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>Continue as guest</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Continue as guest" onPress={() => router.replace("/(tabs)")} style={[styles.primaryButton, { backgroundColor: colors.primary }]}>
+            <Text style={styles.primaryButtonText}>Continue as guest</Text>
           </Pressable>
           <Text style={[styles.footer, { color: colors.muted }]}>Start locally and connect your account whenever you are ready.</Text>
         </View>
@@ -61,7 +40,5 @@ const styles = StyleSheet.create({
   actions: { width: "100%", maxWidth: 480, alignSelf: "center", paddingBottom: 8 },
   primaryButton: { minHeight: 56, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   primaryButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
-  secondaryButton: { minHeight: 52, borderRadius: 18, alignItems: "center", justifyContent: "center", marginTop: 10 },
-  secondaryButtonText: { fontSize: 15, fontWeight: "800" },
   footer: { fontSize: 12, lineHeight: 18, textAlign: "center", marginTop: 16 },
 });

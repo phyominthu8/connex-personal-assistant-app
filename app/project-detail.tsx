@@ -9,6 +9,7 @@ import { useLocalTasks } from "@/lib/local-store";
 import { useAuth } from "@/hooks/use-auth";
 import { trpc } from "@/lib/trpc";
 import { isValidDateKey } from "@/lib/task-date";
+import { getProjectDateError } from "@/lib/project-date";
 import { ProjectTimeline } from "@/components/project-timeline";
 import { usePreferences } from "@/lib/preferences";
 import { syncProjectDeadlineReminder, cancelProjectDeadlineReminder, projectDeadlineDate } from "@/lib/project-deadline-reminders";
@@ -90,8 +91,8 @@ export default function ProjectDetailScreen() {
   };
   const saveEdit = async () => {
     if (!title.trim()) return Alert.alert("Project title required", "Add a name before saving.");
-    if ((startDate && !isValidDateKey(startDate)) || (endDate && !isValidDateKey(endDate))) return Alert.alert("Invalid dates", "Use YYYY-MM-DD for project dates.");
-    if (startDate && endDate && startDate > endDate) return Alert.alert("Invalid date range", "The end date must be on or after the start date.");
+    const dateError = getProjectDateError(startDate, endDate);
+    if (dateError) return Alert.alert("Invalid project dates", dateError);
     const input = { title: title.trim(), description: description.trim(), startDate: startDate || undefined, endDate: endDate || undefined, status };
     if (user && serverProject) { await updateProjectMutation.mutateAsync({ id: serverProject.id, ...input }); await syncDeadline(String(serverProject.id), input.title, input.endDate, serverProject.id); } else { await updateProject(project.id, input); await syncDeadline(project.id, input.title, input.endDate); }
     setEditVisible(false);
