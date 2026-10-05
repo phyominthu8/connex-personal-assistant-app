@@ -7,6 +7,7 @@ describe("notification device verification", () => {
   });
 
   it("distinguishes permission and Android channel readiness", () => {
+    expect(notificationDeviceStatusLabel({ platform: "android", permission: "development-build-required", granted: false, channelReady: false, canSchedule: false })).toBe("Development build required");
     expect(notificationDeviceStatusLabel({ platform: "ios", permission: "denied", granted: false, channelReady: true, canSchedule: false })).toBe("Permission needed");
     expect(notificationDeviceStatusLabel({ platform: "android", permission: "granted", granted: true, channelReady: false, canSchedule: false })).toBe("Android channel not ready");
   });

@@ -21,7 +21,7 @@ export default function WelcomeScreen() {
 
         <View style={styles.actions}>
           <Pressable accessibilityRole="button" accessibilityLabel="Continue as guest" onPress={() => router.replace("/(tabs)")} style={[styles.primaryButton, { backgroundColor: colors.primary }]}>
-            <Text style={styles.primaryButtonText}>Continue as guest</Text>
+            <Text style={styles.primaryButtonText}>Continue</Text>
           </Pressable>
           <Text style={[styles.footer, { color: colors.muted }]}>Start locally and connect your account whenever you are ready.</Text>
         </View>
