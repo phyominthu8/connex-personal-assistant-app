@@ -12,25 +12,31 @@ import { useLocalTasks } from "@/lib/local-store";
 import { toDateKey } from "@/lib/task-date";
 
 const days = ["S", "M", "T", "W", "T", "F", "S"];
-const calendarDays = Array.from({ length: 35 }, (_, index) => index + 1);
-
 export default function CalendarScreen() {
   const colors = useColors();
   const { preferences } = usePreferences();
   const { tasks: localTasks } = useLocalTasks();
-  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+  const today = useMemo(() => new Date(), []);
+  const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [monthOffset, setMonthOffset] = useState(0);
   const [quickSettingsVisible, setQuickSettingsVisible] = useState(false);
-  const monthLabel = useMemo(() => (monthOffset === 0 ? "September 2026" : monthOffset > 0 ? "October 2026" : "August 2026"), [monthOffset]);
-  const selectedDateKey = toDateKey(new Date(2026, 8 + monthOffset, selectedDay));
+  const monthDate = useMemo(() => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1), [today, monthOffset]);
+  const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+  const monthLabel = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const selectedDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), Math.min(selectedDay, daysInMonth));
+  const selectedDateKey = toDateKey(selectedDate);
   const selectedTasks = localTasks.filter((task) => task.dueDate === selectedDateKey);
+  const completedSelectedTasks = selectedTasks.filter((task) => task.complete).length;
+  const progress = selectedTasks.length ? Math.round((completedSelectedTasks / selectedTasks.length) * 100) : 0;
+  const calendarDays = Array.from({ length: monthDate.getDay() + daysInMonth }, (_, index) => index < monthDate.getDay() ? null : index - monthDate.getDay() + 1);
+  const selectedDateLabel = selectedDate.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toUpperCase();
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View>
-            <Text style={[styles.eyebrow, { color: colors.muted }]}>MONDAY, SEPTEMBER 1</Text>
+            <Text style={[styles.eyebrow, { color: colors.muted }]}>{selectedDateLabel}</Text>
             <Text style={[styles.title, { color: colors.foreground }]}>{formatGreeting(preferences.name)}</Text>
           </View>
           <View style={styles.headerActions} />
@@ -39,25 +45,24 @@ export default function CalendarScreen() {
         <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
           <View>
             <Text style={styles.summaryLabel}>YOUR DAY AT A GLANCE</Text>
-            <Text style={styles.summaryTitle}>3 tasks planned</Text>
-            <Text style={styles.summaryText}>One small step at a time.</Text>
+            <Text style={styles.summaryTitle}>{selectedTasks.length} {selectedTasks.length === 1 ? "task" : "tasks"} planned</Text>
+            <Text style={styles.summaryText}>{selectedTasks.length ? `${completedSelectedTasks} completed so far.` : "One small step at a time."}</Text>
           </View>
-          <View style={styles.progressRing}><Text style={styles.progressText}>33%</Text></View>
+          <View style={styles.progressRing}><Text style={styles.progressText}>{progress}%</Text></View>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Pressable onPress={() => setMonthOffset((value) => value - 1)} accessibilityLabel="Previous month"><Ionicons name="chevron-back" size={20} color={colors.foreground} /></Pressable>
           <Text style={[styles.month, { color: colors.foreground }]}>{monthLabel}</Text>
-          <View style={styles.headerActions}><Pressable onPress={() => router.push("/projects")} accessibilityLabel="Open projects" style={styles.smallIcon}><Ionicons name="folder-outline" size={18} color={colors.foreground} /></Pressable><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open settings" style={styles.smallIcon}><Ionicons name="settings-outline" size={18} color={colors.foreground} /></Pressable><Pressable onPress={() => setMonthOffset((value) => value + 1)} accessibilityLabel="Next month"><Ionicons name="chevron-forward" size={20} color={colors.foreground} /></Pressable></View>
+          <View style={styles.headerActions}><Pressable onPress={() => { setMonthOffset((value) => value - 1); setSelectedDay(1); }} accessibilityLabel="Previous month"><Ionicons name="chevron-back" size={20} color={colors.foreground} /></Pressable><Pressable onPress={() => router.push("/projects")} accessibilityLabel="Open projects" style={styles.smallIcon}><Ionicons name="folder-outline" size={18} color={colors.foreground} /></Pressable><Pressable onPress={() => setQuickSettingsVisible(true)} accessibilityLabel="Open settings" style={styles.smallIcon}><Ionicons name="settings-outline" size={18} color={colors.foreground} /></Pressable><Pressable onPress={() => { setMonthOffset((value) => value + 1); setSelectedDay(1); }} accessibilityLabel="Next month"><Ionicons name="chevron-forward" size={20} color={colors.foreground} /></Pressable></View>
         </View>
 
         <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.weekRow}>{days.map((day, index) => <Text key={`${day}-${index}`} style={[styles.weekday, { color: colors.muted }]}>{day}</Text>)}</View>
-          <View style={styles.grid}>{calendarDays.map((day) => {
-            const dayKey = day > 0 ? toDateKey(new Date(2026, 8 + monthOffset, day)) : "";
+          <View style={styles.grid}>{calendarDays.map((day, index) => {
+            const dayKey = day ? toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth(), day)) : "";
             const hasTask = localTasks.some((task) => task.dueDate === dayKey);
             const selected = day === selectedDay;
-            return <Pressable key={day} onPress={() => setSelectedDay(day)} style={[styles.dayCell, selected && { backgroundColor: colors.primary }]}><Text style={[styles.dayText, { color: selected ? "#FFFFFF" : colors.foreground }]}>{day}</Text>{hasTask && <View style={[styles.dot, { backgroundColor: selected ? "#FFFFFF" : colors.warning }]} />}</Pressable>;
+            return <Pressable key={`${day ?? "empty"}-${index}`} disabled={!day} onPress={() => day && setSelectedDay(day)} style={[styles.dayCell, selected && { backgroundColor: colors.primary }]}><Text style={[styles.dayText, { color: selected ? "#FFFFFF" : colors.foreground }]}>{day ?? ""}</Text>{hasTask && <View style={[styles.dot, { backgroundColor: selected ? "#FFFFFF" : colors.warning }]} />}</Pressable>;
           })}</View>
         </View>
 
