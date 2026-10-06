@@ -10,7 +10,7 @@ import { formatGreeting } from "@/lib/greeting";
 import { useLocalTasks } from "@/lib/local-store";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
-import { matchesTaskDateFilter, type TaskDateFilter } from "@/lib/task-date";
+import { formatDateReadable, matchesTaskDateFilter, type TaskDateFilter } from "@/lib/task-date";
 import { sortTasks, TASK_SORT_OPTIONS, type TaskSortOption } from "@/lib/task-sort";
 
 const SORT_STORAGE_KEY = "personal-assistant.tasks.sort.v1";
@@ -29,7 +29,7 @@ export default function TasksScreen() {
   const [sort, setSort] = useState<TaskSortOption>("created");
   const [sortVisible, setSortVisible] = useState(false);
   const filters: TaskDateFilter[] = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Completed"];
-  const tasks = user && serverTasksQuery.data ? serverTasksQuery.data.map((task) => ({ id: String(task.id), title: task.title, due: task.dueLabel, dueDate: task.dueDate || "", dueTime: task.dueTime || "09:00", priority: task.priority, project: task.project, projectId: task.projectId ? String(task.projectId) : undefined, milestoneId: task.milestoneId ? String(task.milestoneId) : undefined, complete: task.completed, createdAt: task.createdAt })) : localTasks;
+  const tasks = user && serverTasksQuery.data ? serverTasksQuery.data.map((task) => ({ id: String(task.id), title: task.title, due: task.dueDate ? formatDateReadable(task.dueDate) : task.dueLabel.split(" · ")[0], dueDate: task.dueDate || "", dueTime: task.dueTime || undefined, priority: task.priority, project: task.project, projectId: task.projectId ? String(task.projectId) : undefined, milestoneId: task.milestoneId ? String(task.milestoneId) : undefined, complete: task.completed, createdAt: task.createdAt })) : localTasks;
 
   useEffect(() => { AsyncStorage.getItem(SORT_STORAGE_KEY).then((value) => { if (value && validSortOptions.includes(value as TaskSortOption)) setSort(value as TaskSortOption); }).catch(() => undefined); }, []);
   useEffect(() => { void AsyncStorage.setItem(SORT_STORAGE_KEY, sort).catch(() => undefined); }, [sort]);

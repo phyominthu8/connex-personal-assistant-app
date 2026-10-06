@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTimeReadable, getTaskDateError, isValidDateKey, isValidTime, matchesTaskDateFilter, quickDateKey, toDateKey } from "../lib/task-date";
+import { formatDateReadable, formatTimeReadable, getTaskDateError, isValidDateKey, isValidTime, matchesTaskDateFilter, quickDateKey, toDateKey } from "../lib/task-date";
 
 describe("task date utilities", () => {
   const now = new Date(2026, 8, 2, 10, 0);
@@ -24,6 +24,9 @@ describe("task date utilities", () => {
     expect(isValidTime("23:59")).toBe(true);
     expect(isValidTime("24:00")).toBe(false);
     expect(formatTimeReadable("18:45")).toBe("6:45 PM");
+  });
+  it("formats due dates without a time component", () => {
+    expect(formatDateReadable("2026-10-06")).not.toContain(":");
   });
   it("matches date and completion filters", () => {
     const task = { dueDate: "2026-09-03", completed: false };

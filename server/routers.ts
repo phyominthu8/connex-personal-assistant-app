@@ -43,7 +43,7 @@ export const appRouter = router({
         dueLabel: z.string().trim().min(1).max(64).default("Today"),
         startDate: z.string().refine((value) => isValidDateKey(value), "Invalid start date").optional(),
         dueDate: z.string().refine((value) => isValidDateKey(value), "Invalid date"),
-        dueTime: z.string().refine((value) => isValidTime(value), "Invalid time"),
+        dueTime: z.string().refine((value) => isValidTime(value), "Invalid time").optional(),
         priority: z.enum(["Low", "Medium", "High"]).default("Medium"),
         project: z.string().trim().min(1).max(255).default("Personal"),
         projectId: z.number().int().positive().optional(),

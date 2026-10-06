@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { isValidDateKey, isValidTime, quickDateKey } from "@/lib/task-date";
 import { filterProjectLinkedTasks } from "@/lib/project-deletion";
 
-export type LocalTask = { id: string; title: string; due: string; startDate?: string; dueDate: string; dueTime: string; priority: "Low" | "Medium" | "High"; project: string; projectId?: string; milestoneId?: string; category: string; recurrence?: string; complete: boolean; notes?: string };
+export type LocalTask = { id: string; title: string; due: string; startDate?: string; dueDate: string; dueTime?: string; priority: "Low" | "Medium" | "High"; project: string; projectId?: string; milestoneId?: string; category: string; recurrence?: string; complete: boolean; notes?: string };
 type TaskInput = Pick<LocalTask, "title" | "project" | "projectId" | "milestoneId" | "category" | "priority" | "due" | "startDate" | "dueDate" | "dueTime"> & { notes?: string; recurrence?: string };
 const STORAGE_KEY = "personal-assistant.tasks.v2";
 const LEGACY_KEY = "personal-assistant.tasks.v1";
