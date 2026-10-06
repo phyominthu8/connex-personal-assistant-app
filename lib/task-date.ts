@@ -39,6 +39,13 @@ export function isValidDateKey(value: string, minDate?: string, maxDate?: string
   return true;
 }
 
+export function getTaskDateError(startDate: string, dueDate: string) {
+  if (!isValidDateKey(startDate)) return "Choose a valid start date.";
+  if (!isValidDateKey(dueDate)) return "Choose a valid due date.";
+  if (startDate > dueDate) return "The start date must be on or before the due date.";
+  return null;
+}
+
 export function quickDateKey(option: "Today" | "Tomorrow" | "Next Week", now = new Date()) {
   const date = new Date(now);
   if (option === "Tomorrow") date.setDate(date.getDate() + 1);

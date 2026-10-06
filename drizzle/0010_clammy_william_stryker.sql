@@ -1,0 +1,1 @@
+ALTER TABLE `tasks` ADD `startDate` varchar(10);

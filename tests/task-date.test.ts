@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTimeReadable, isValidDateKey, isValidTime, matchesTaskDateFilter, quickDateKey, toDateKey } from "../lib/task-date";
+import { formatTimeReadable, getTaskDateError, isValidDateKey, isValidTime, matchesTaskDateFilter, quickDateKey, toDateKey } from "../lib/task-date";
 
 describe("task date utilities", () => {
   const now = new Date(2026, 8, 2, 10, 0);
@@ -13,6 +13,11 @@ describe("task date utilities", () => {
     expect(isValidDateKey("2026-09-02", "2026-09-01", "2026-09-30")).toBe(true);
     expect(isValidDateKey("2026-02-30")).toBe(false);
     expect(isValidDateKey("2026-08-31", "2026-09-01")).toBe(false);
+  });
+  it("validates task start and due date order", () => {
+    expect(getTaskDateError("2026-09-01", "2026-09-05")).toBeNull();
+    expect(getTaskDateError("2026-09-06", "2026-09-05")).toContain("on or before");
+    expect(getTaskDateError("2026-02-30", "2026-03-01")).toContain("start date");
   });
   it("validates and formats 24-hour time", () => {
     expect(isValidTime("09:30")).toBe(true);
