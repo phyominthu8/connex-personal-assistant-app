@@ -31,7 +31,7 @@ export default function ProjectsScreen() {
   const colors = useColors();
   const { preferences } = usePreferences();
   const { projects, milestones, addProject, deleteProject } = useProjects();
-  const { tasks } = useLocalTasks();
+  const { tasks, deleteProjectTasks } = useLocalTasks();
   const { user } = useAuth();
   const authenticated = Boolean(user);
   const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: authenticated, retry: false });
@@ -93,7 +93,7 @@ export default function ProjectsScreen() {
             <View style={styles.progressRow}><View style={[styles.progressTrack, { backgroundColor: colors.border }]}><View style={[styles.progressFill, { backgroundColor: project.color, width: `${Math.round(progress * 100)}%` }]} /></View><Text style={[styles.progressText, { color: colors.foreground }]}>{Math.round(progress * 100)}%</Text></View>{viewMode === "cards" && <Text style={[styles.taskText, { color: colors.muted }]}>{completed} of {linked.length} linked tasks</Text>}
             {viewMode === "timeline" && <ProjectTimelinePreview project={project} authenticated={authenticated} localMilestones={milestones} />}
           </Pressable>
-          <View style={styles.cardActions}><Pressable onPress={() => router.push({ pathname: "/project-detail", params: { projectId: project.id, edit: "1" } })}><Text style={[styles.actionText, { color: colors.primary }]}>Edit</Text></Pressable><Pressable onPress={() => Alert.alert("Delete project?", `Remove ${project.title} and its milestones?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => authenticated && /^\d+$/.test(project.id) ? void deleteProjectMutation.mutateAsync({ id: Number(project.id) }) : void deleteProject(project.id) }])}><Text style={[styles.actionText, { color: colors.error }]}>Delete</Text></Pressable></View>
+          <View style={styles.cardActions}><Pressable onPress={() => router.push({ pathname: "/project-detail", params: { projectId: project.id, edit: "1" } })}><Text style={[styles.actionText, { color: colors.primary }]}>Edit</Text></Pressable><Pressable onPress={() => Alert.alert("Delete project?", `Remove ${project.title}, its tasks, milestones, and reminders?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: async () => { if (authenticated && /^\d+$/.test(project.id)) await deleteProjectMutation.mutateAsync({ id: Number(project.id) }); else { await deleteProjectTasks(project.id, project.title); await deleteProject(project.id); } } }])}><Text style={[styles.actionText, { color: colors.error }]}>Delete</Text></Pressable></View>
         </View>;
       })}</View>
     </ScrollView>

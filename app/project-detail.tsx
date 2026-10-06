@@ -21,7 +21,7 @@ export default function ProjectDetailScreen() {
   const colors = useColors();
   const params = useLocalSearchParams<{ projectId?: string; edit?: string }>();
   const { projects: localProjects, milestones: localMilestones, updateProject, deleteProject, addMilestone, updateMilestone, deleteMilestone } = useProjects();
-  const { tasks: localTasks } = useLocalTasks();
+  const { tasks: localTasks, deleteProjectTasks } = useLocalTasks();
   const { user } = useAuth();
   const { preferences } = usePreferences();
   const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
@@ -110,7 +110,7 @@ export default function ProjectDetailScreen() {
   };
   const toggleMilestone = async (milestone: LocalMilestone) => { if (user && serverProject) await updateMilestoneMutation.mutateAsync({ id: Number(milestone.id), completed: !milestone.completed }); else await updateMilestone(milestone.id, { completed: !milestone.completed }); };
   const removeMilestone = (milestone: LocalMilestone) => Alert.alert("Delete milestone?", "This cannot be undone.", [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => { if (user && serverProject) void deleteMilestoneMutation.mutateAsync({ id: Number(milestone.id) }); else void deleteMilestone(milestone.id); } }]);
-  const removeProject = () => Alert.alert("Delete project?", `Remove ${project.title} and its milestones?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: async () => { await cancelProjectDeadlineReminder(project.id); if (user && serverProject) { const existing = (alarmsQuery.data || []).find((alarm) => alarm.projectId === serverProject.id && alarm.taskId == null); if (existing) await deleteAlarmMutation.mutateAsync({ id: existing.id }); await deleteProjectMutation.mutateAsync({ id: serverProject.id }); } else { await deleteProject(project.id); router.back(); } } }]);
+  const removeProject = () => Alert.alert("Delete project?", `Remove ${project.title}, its tasks, milestones, and reminders?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: async () => { await cancelProjectDeadlineReminder(project.id); if (user && serverProject) { const existing = (alarmsQuery.data || []).find((alarm) => alarm.projectId === serverProject.id && alarm.taskId == null); if (existing) await deleteAlarmMutation.mutateAsync({ id: existing.id }); await deleteProjectMutation.mutateAsync({ id: serverProject.id }); } else { await deleteProjectTasks(project.id, project.title); await deleteProject(project.id); router.back(); } } }]);
 
   return <ScreenContainer edges={["top", "bottom", "left", "right"]} className="px-5" containerClassName="bg-background"><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
     <View style={styles.header}><Pressable onPress={() => router.back()} style={styles.iconButton}><Ionicons name="chevron-back" size={21} color={colors.foreground} /></Pressable><Text style={[styles.headerTitle, { color: colors.foreground }]}>Project detail</Text><Pressable onPress={openEdit} style={styles.iconButton} accessibilityLabel="Edit project"><Ionicons name="create-outline" size={20} color={colors.foreground} /></Pressable></View>
