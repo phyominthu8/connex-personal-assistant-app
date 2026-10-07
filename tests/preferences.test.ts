@@ -3,7 +3,7 @@ import { ACCENT_PALETTES, DEFAULT_PREFERENCES, isValidProfileEmail, isValidProfi
 
 describe("preferences", () => {
   it("provides stable defaults for appearance and device behavior", () => {
-    expect(DEFAULT_PREFERENCES).toEqual({ notifications: true, darkMode: false, accent: "#4F46E5", timezone: "UTC", sound: true, vibration: true, name: "", email: "" });
+    expect(DEFAULT_PREFERENCES).toEqual({ notifications: true, darkMode: false, accent: "#4F46E5", timezone: "UTC", sound: true, vibration: true, notificationTime: "09:00", name: "", email: "" });
   });
 
   it("normalizes invalid persisted values safely", () => {

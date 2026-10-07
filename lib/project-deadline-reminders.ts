@@ -11,12 +11,12 @@ async function readMap(): Promise<ReminderMap> {
 }
 async function writeMap(value: ReminderMap) { await AsyncStorage.setItem(KEY, JSON.stringify(value)); }
 
-export async function syncProjectDeadlineReminder(projectId: string, title: string, endDate: string | undefined, enabled: boolean, preferences: { sound: boolean; vibration: boolean; notifications: boolean }) {
+export async function syncProjectDeadlineReminder(projectId: string, title: string, endDate: string | undefined, enabled: boolean, preferences: { sound: boolean; vibration: boolean; notifications: boolean; notificationTime?: string }, notificationTime = preferences.notificationTime || "09:00") {
   const map = await readMap();
   const previous = map[projectId];
   if (previous) await cancelReminder(previous);
   delete map[projectId];
-  const fireAt = projectDeadlineDate(endDate);
+  const fireAt = projectDeadlineDate(endDate, notificationTime);
   if (enabled && preferences.notifications && fireAt && fireAt.getTime() > Date.now()) {
     const notificationId = await scheduleReminder(`${title} deadline`, fireAt, { sound: preferences.sound, vibration: preferences.vibration });
     if (notificationId) map[projectId] = notificationId;

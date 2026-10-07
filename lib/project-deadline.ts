@@ -1,5 +1,5 @@
-export function projectDeadlineDate(endDate?: string): Date | null {
-  if (!endDate) return null;
-  const date = new Date(`${endDate}T09:00:00`);
-  return Number.isNaN(date.getTime()) ? null : date;
+import { dateAtNotificationTime } from "./reminder-time";
+
+export function projectDeadlineDate(endDate?: string, notificationTime = "09:00") {
+  return dateAtNotificationTime(endDate, notificationTime);
 }
