@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 type NotificationsModule = typeof import("expo-notifications");
 
@@ -11,6 +12,7 @@ let notificationsPromise: Promise<NotificationsModule | null> | undefined;
  */
 export async function loadNotifications(): Promise<NotificationsModule | null> {
   if (Platform.OS === "web") return null;
+  if (Constants.appOwnership === "expo") return null;
   if (!notificationsPromise) {
     notificationsPromise = import("expo-notifications").catch(() => null);
   }

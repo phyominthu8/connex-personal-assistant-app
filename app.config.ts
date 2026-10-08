@@ -90,6 +90,7 @@ const config: ExpoConfig = {
     "expo-font",
     "expo-image",
     "expo-localization",
+    "expo-notifications",
     "expo-secure-store",
     "expo-status-bar",
     "expo-web-browser",

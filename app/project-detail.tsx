@@ -15,6 +15,7 @@ import { usePreferences } from "@/lib/preferences";
 import { syncProjectDeadlineReminder, cancelProjectDeadlineReminder, projectDeadlineDate } from "@/lib/project-deadline-reminders";
 import { DatePicker } from "@/components/task-pickers";
 import { TimePicker } from "@/components/task-pickers";
+import { normalizeMilestoneReminder } from "@/lib/milestone-date";
 
 const statuses = ["active", "completed", "on_hold", "archived"] as const;
 type ProjectStatus = typeof statuses[number];
@@ -111,13 +112,22 @@ export default function ProjectDetailScreen() {
   const openMilestone = (milestone?: LocalMilestone) => { setMilestoneId(milestone?.id || null); setMilestoneTitle(milestone?.title || ""); setMilestoneDueDate(milestone?.dueDate || ""); setMilestoneReminderAt(milestone?.reminderAt || ""); setMilestoneVisible(true); };
   const saveMilestone = async () => {
     if (!milestoneTitle.trim()) return Alert.alert("Milestone title required", "Add a name before saving.");
-    if (milestoneDueDate && !isValidDateKey(milestoneDueDate)) return Alert.alert("Invalid milestone date", "Use YYYY-MM-DD for the milestone due date.");
-    const localInput = { projectId: project.id, title: milestoneTitle.trim(), dueDate: milestoneDueDate, reminderAt: milestoneReminderAt || undefined, completed: projectMilestones.find((item) => item.id === milestoneId)?.completed || false };
-    if (user && serverProject) {
-      const serverInput = { title: localInput.title, dueDate: localInput.dueDate || undefined, reminderAt: localInput.reminderAt ? new Date(localInput.reminderAt).toISOString() : undefined };
-      if (milestoneId) await updateMilestoneMutation.mutateAsync({ id: Number(milestoneId), ...serverInput }); else await createMilestoneMutation.mutateAsync({ projectId: serverProject.id, ...serverInput, completed: false });
-    } else if (milestoneId) await updateMilestone(milestoneId, localInput); else await addMilestone(localInput);
-    setMilestoneVisible(false); setMilestoneId(null); setMilestoneTitle(""); setMilestoneDueDate(""); setMilestoneReminderAt("");
+    const dueDate = milestoneDueDate.trim();
+    if (dueDate && !isValidDateKey(dueDate)) return Alert.alert("Invalid milestone date", "Use YYYY-MM-DD for the milestone due date.");
+    const reminderResult = normalizeMilestoneReminder(milestoneReminderAt);
+    if (reminderResult.error) return Alert.alert("Invalid reminder", reminderResult.error);
+    const reminderAt = reminderResult.iso;
+    const localInput = { projectId: project.id, title: milestoneTitle.trim(), dueDate, reminderAt, completed: projectMilestones.find((item) => item.id === milestoneId)?.completed || false };
+    try {
+      if (user && serverProject) {
+        const serverInput = { title: localInput.title, dueDate: localInput.dueDate || undefined, reminderAt };
+        if (milestoneId) await updateMilestoneMutation.mutateAsync({ id: Number(milestoneId), ...serverInput }); else await createMilestoneMutation.mutateAsync({ projectId: serverProject.id, ...serverInput, completed: false });
+      } else if (milestoneId) await updateMilestone(milestoneId, localInput); else await addMilestone(localInput);
+      setMilestoneVisible(false); setMilestoneId(null); setMilestoneTitle(""); setMilestoneDueDate(""); setMilestoneReminderAt("");
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : "Connex could not save this milestone. Please try again.";
+      Alert.alert("Could not save milestone", message);
+    }
   };
   const toggleMilestone = async (milestone: LocalMilestone) => { if (user && serverProject) await updateMilestoneMutation.mutateAsync({ id: Number(milestone.id), completed: !milestone.completed }); else await updateMilestone(milestone.id, { completed: !milestone.completed }); };
   const removeMilestone = (milestone: LocalMilestone) => Alert.alert("Delete milestone?", "This cannot be undone.", [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => { if (user && serverProject) void deleteMilestoneMutation.mutateAsync({ id: Number(milestone.id) }); else void deleteMilestone(milestone.id); } }]);
