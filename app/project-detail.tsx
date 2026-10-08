@@ -21,7 +21,7 @@ type ProjectStatus = typeof statuses[number];
 
 export default function ProjectDetailScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ projectId?: string; edit?: string }>();
+  const params = useLocalSearchParams<{ projectId?: string; edit?: string; newMilestone?: string }>();
   const { projects: localProjects, milestones: localMilestones, updateProject, deleteProject, addMilestone, updateMilestone, deleteMilestone } = useProjects();
   const { tasks: localTasks, deleteProjectTasks } = useLocalTasks();
   const { user } = useAuth();
@@ -64,7 +64,10 @@ export default function ProjectDetailScreen() {
     if (!project) return;
     setTitle(project.title); setDescription(project.description || ""); setStartDate(project.startDate || ""); setEndDate(project.endDate || ""); setStatus(project.status); setReminderTime(preferences.notificationTime);
     if (params.edit === "1") setEditVisible(true);
-  }, [project?.id, params.edit, preferences.notificationTime]);
+    if (params.newMilestone === "1") {
+      setMilestoneId(null); setMilestoneTitle(""); setMilestoneDueDate(""); setMilestoneReminderAt(""); setMilestoneVisible(true);
+    }
+  }, [project?.id, params.edit, params.newMilestone, preferences.notificationTime]);
 
   useEffect(() => {
     if (!project) return;
