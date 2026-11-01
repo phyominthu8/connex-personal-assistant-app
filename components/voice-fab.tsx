@@ -1,12 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/use-colors";
 
 export function VoiceFab() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  if (pathname === "/" || pathname === "/index") return null;
   return (
     <View pointerEvents="box-none" style={[styles.container, { right: 18, bottom: Math.max(insets.bottom, 14) + 68 }]}>
       <Pressable
