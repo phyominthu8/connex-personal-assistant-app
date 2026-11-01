@@ -17,7 +17,7 @@ import { filterMilestonesForProject, isOverdueDate } from "@/lib/task-milestones
 
 export default function TaskEditorScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ id?: string; project?: string; projectId?: string; milestoneId?: string }>();
+  const params = useLocalSearchParams<{ id?: string; project?: string; projectId?: string; milestoneId?: string; title?: string }>();
   const { tasks: localTasks, addTask, updateTask } = useLocalTasks();
   const { projects: localProjects, milestones: localMilestones } = useProjects();
   const { user } = useAuth();
@@ -30,7 +30,7 @@ export default function TaskEditorScreen() {
   const serverTasksQuery = trpc.tasks.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const editing = Boolean(params.id);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(typeof params.title === "string" ? params.title : "");
   const [notes, setNotes] = useState("");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Medium");
   const [color, setColor] = useState("#2563EB");

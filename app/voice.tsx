@@ -19,7 +19,7 @@ export default function VoiceAssistantScreen() {
     if (intent.kind === "create-milestone") return Alert.alert("Confirm milestone", `Create milestone “${intent.title || "Untitled milestone"}” in ${intent.projectName || "the selected project"}?`, [{ text: "Cancel", style: "cancel" }, { text: "Create milestone", onPress: () => router.push({ pathname: "/projects", params: { query: intent.projectName, milestoneTitle: intent.title } }) }]);
     if (intent.kind === "search") return Alert.alert("Search", `Search ${intent.entity}${intent.filter ? ` · ${intent.filter}` : ""}?`, [{ text: "Cancel", style: "cancel" }, { text: "Search", onPress: () => router.push({ pathname: intent.entity === "tasks" ? "/tasks" : "/projects", params: { query: intent.query, filter: intent.filter, project: intent.projectName } }) }]);
     const taskTitle = intent.kind === "create-task" ? intent.title : transcript;
-    Alert.alert("Confirm task", `Create a task from “${taskTitle}”?`, [{ text: "Cancel", style: "cancel" }, { text: "Create task", onPress: () => router.push({ pathname: "/task-editor", params: { project: "Personal" } }) }]);
+    Alert.alert("Confirm task", `Create a task from “${taskTitle}”?`, [{ text: "Cancel", style: "cancel" }, { text: "Create task", onPress: () => router.push({ pathname: "/task-editor", params: { project: "Personal", title: taskTitle } }) }]);
   };
   const applyTextCommand = () => { const next = parseVoiceIntent(textCommand); setIntent(next); setTranscript(textCommand.trim()); };
   const confirmationLabel = intent.kind === "create-project" ? "Confirm project" : intent.kind === "create-milestone" ? "Confirm milestone" : intent.kind === "search" ? "Run search" : "Confirm task";
