@@ -2,7 +2,7 @@ export type VoiceIntent =
   | { kind: "create-project"; title: string }
   | { kind: "create-task"; title: string }
   | { kind: "create-milestone"; title: string; projectName: string }
-  | { kind: "search"; entity: "projects" | "milestones" | "tasks"; query: string; filter?: "Today" | "This Week" | "Overdue" | "Active" | "Completed"; projectName?: string }
+  | { kind: "search"; entity: "projects" | "milestones" | "tasks"; query: string; filter?: "Today" | "Tomorrow" | "This Week" | "Overdue" | "Active" | "Completed" | "On Hold" | "Archived"; projectName?: string }
   | { kind: "task"; text: string };
 
 function cleanTitle(value: string) {
@@ -39,10 +39,10 @@ export function parseVoiceIntent(input: string): VoiceIntent {
   if (searchMatch && entityMatch) {
     const entity = entityMatch[1].toLowerCase().startsWith("project") ? "projects" : entityMatch[1].toLowerCase().startsWith("milestone") ? "milestones" : "tasks";
     const remainder = searchMatch[1].replace(entityMatch[0], "").trim();
-    const filter = /\boverdue\b/i.test(remainder) ? "Overdue" : /\b(?:today|due today)\b/i.test(remainder) ? "Today" : /\b(?:this week|due this week)\b/i.test(remainder) ? "This Week" : /\b(?:active|ongoing|in progress)\b/i.test(remainder) ? "Active" : /\bcompleted?\b/i.test(remainder) ? "Completed" : undefined;
+    const filter = /\boverdue\b/i.test(remainder) ? "Overdue" : /\b(?:today|due today)\b/i.test(remainder) ? "Today" : /\b(?:tomorrow|due tomorrow)\b/i.test(remainder) ? "Tomorrow" : /\b(?:this week|due this week)\b/i.test(remainder) ? "This Week" : /\b(?:active|ongoing|in progress)\b/i.test(remainder) ? "Active" : /\bcompleted?\b/i.test(remainder) ? "Completed" : /\b(?:on hold|on_hold|paused)\b/i.test(remainder) ? "On Hold" : /\barchived?\b/i.test(remainder) ? "Archived" : undefined;
     const projectMatch = remainder.match(/\b(?:in|for|under)\s+(?:the\s+)?project\s+([^,]+?)(?:\s+(?:with|due|started|status)\b|$)/i);
     const projectName = projectMatch ? cleanTitle(projectMatch[1]) : undefined;
-    const query = projectName || cleanTitle(remainder.replace(/\boverdue\b|\btoday\b|\bthis week\b|\bactive\b|\bongoing\b|\bin progress\b|\bcompleted?\b|\bdue\b|\bstarted\b|\bstatus\b/gi, ""));
+    const query = projectName || cleanTitle(remainder.replace(/\boverdue\b|\btoday\b|\btomorrow\b|\bthis week\b|\bactive\b|\bongoing\b|\bin progress\b|\bcompleted?\b|\bon hold\b|\bon_hold\b|\bpaused\b|\barchived?\b|\bdue\b|\bstarted\b|\bstatus\b/gi, ""));
     return { kind: "search", entity, query, filter, projectName };
   }
 

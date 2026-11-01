@@ -8,7 +8,7 @@ import { parseVoiceIntent, type VoiceIntent } from "@/lib/voice-intent";
 import { useLocalTasks } from "@/lib/local-store";
 import { useProjects } from "@/lib/project-store";
 import { isOverdueDate } from "@/lib/task-milestones";
-import { matchesTaskDateFilter, toDateKey, type TaskDateFilter } from "@/lib/task-date";
+import { matchesTaskDateFilter, quickDateKey, toDateKey, type TaskDateFilter } from "@/lib/task-date";
 import { sortSearchResultsByDueDate, type VoiceSearchResult } from "@/lib/voice-search";
 import { useAuth } from "@/hooks/use-auth";
 import { trpc } from "@/lib/trpc";
@@ -19,8 +19,14 @@ function projectMatches(project: { status: string; startDate?: string; endDate?:
   if (!filter || filter === "All") return true;
   if (filter === "Completed") return project.status === "completed";
   if (filter === "Active") return project.status === "active";
+  if (filter === "On Hold") return project.status === "on_hold";
+  if (filter === "Archived") return project.status === "archived";
   if (filter === "Overdue") return Boolean(project.endDate && project.endDate < today && project.status !== "completed");
   if (filter === "Today") return Boolean(project.startDate && project.endDate && project.startDate <= today && project.endDate >= today);
+  if (filter === "Tomorrow") {
+    const tomorrow = quickDateKey("Tomorrow");
+    return Boolean(project.startDate && project.endDate && project.startDate <= tomorrow && project.endDate >= tomorrow);
+  }
   if (filter === "This Week") {
     const end = new Date();
     end.setDate(end.getDate() + (7 - end.getDay()));
@@ -60,8 +66,13 @@ export default function VoiceAssistantScreen() {
     }
     return milestones.filter((milestone) => {
       const project = projects.find((item) => item.id === milestone.projectId);
-      const statusMatch = intent.filter === "Completed" ? milestone.completed : intent.filter === "Active" ? !milestone.completed : intent.filter === "Overdue" ? !milestone.completed && isOverdueDate(milestone.dueDate, today) : true;
-      return statusMatch && matchesText(`${milestone.title} ${project?.title || ""}`);
+      const statusMatch = intent.filter === "Completed" ? milestone.completed : intent.filter === "Active" ? !milestone.completed : intent.filter === "On Hold" || intent.filter === "Archived" ? false : true;
+      const tomorrow = quickDateKey("Tomorrow");
+      const end = new Date();
+      end.setDate(end.getDate() + (7 - end.getDay()));
+      const weekEnd = toDateKey(end);
+      const dateMatch = intent.filter === "Today" ? milestone.dueDate === today : intent.filter === "Tomorrow" ? milestone.dueDate === tomorrow : intent.filter === "This Week" ? Boolean(milestone.dueDate && milestone.dueDate >= today && milestone.dueDate <= weekEnd) : intent.filter === "Overdue" ? !milestone.completed && isOverdueDate(milestone.dueDate, today) : true;
+      return statusMatch && dateMatch && matchesText(`${milestone.title} ${project?.title || ""}`);
     }).map((milestone) => ({ kind: "milestone", id: milestone.id, title: milestone.title, dueDate: milestone.dueDate, subtitle: `${projects.find((project) => project.id === milestone.projectId)?.title || "Project"}${milestone.dueDate ? ` · Due ${milestone.dueDate}` : ""}`, projectId: milestone.projectId, milestoneId: milestone.id }));
   }, [intent, milestones, projects, searchableProjects, tasks, today]);
   const sortedResults = useMemo(() => sortSearchResultsByDueDate(searchResults, sortAscending), [searchResults, sortAscending]);
