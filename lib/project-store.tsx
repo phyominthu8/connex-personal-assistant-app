@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-export type LocalMilestone = { id: string; projectId: string; title: string; description?: string; dueDate: string; reminderAt?: string; completed: boolean };
+export type LocalMilestone = { id: string; projectId: string; title: string; color: string; description?: string; dueDate: string; reminderAt?: string; completed: boolean };
 export type LocalProject = { id: string; title: string; description?: string; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
 const PROJECTS_KEY = "personal-assistant.projects.v1";
 const MILESTONES_KEY = "personal-assistant.milestones.v1";
@@ -10,7 +10,7 @@ const seedProjects: LocalProject[] = [
   { id: "p2", title: "Home garden", type: "personal", status: "active", color: "#16A34A", icon: "leaf", startDate: "2026-09-03", endDate: "2026-10-15", description: "Plan and build the new garden beds." },
   { id: "p3", title: "Q3 planning", type: "work", status: "completed", color: "#F59E0B", icon: "flag", description: "Quarterly planning and handoff." },
 ];
-const seedMilestones: LocalMilestone[] = [{ id: "m1", projectId: "p1", title: "Direction approved", dueDate: "2026-09-05", completed: true }, { id: "m2", projectId: "p1", title: "First concept shared", dueDate: "2026-09-12", completed: false }];
+const seedMilestones: LocalMilestone[] = [{ id: "m1", projectId: "p1", title: "Direction approved", color: "#16A34A", dueDate: "2026-09-05", completed: true }, { id: "m2", projectId: "p1", title: "First concept shared", color: "#D97706", dueDate: "2026-09-12", completed: false }];
 function parse<T>(raw: string | null, fallback: T): T { if (!raw) return fallback; try { const value = JSON.parse(raw); return value as T; } catch { return fallback; } }
 type Store = { projects: LocalProject[]; milestones: LocalMilestone[]; hydrated: boolean; addProject: (input: Omit<LocalProject, "id">) => Promise<void>; updateProject: (id: string, input: Partial<Omit<LocalProject, "id">>) => Promise<void>; deleteProject: (id: string) => Promise<void>; addMilestone: (input: Omit<LocalMilestone, "id">) => Promise<void>; updateMilestone: (id: string, input: Partial<Omit<LocalMilestone, "id">>) => Promise<void>; deleteMilestone: (id: string) => Promise<void> };
 const Context = createContext<Store | null>(null);

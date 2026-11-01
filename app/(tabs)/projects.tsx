@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { trpc } from "@/lib/trpc";
 import { DatePicker } from "@/components/task-pickers";
 import { formatDateReadable, quickDateKey } from "@/lib/task-date";
+import { ColorPalette } from "@/components/color-palette";
 
 const types = ["all", "personal", "work", "team", "other"] as const;
 const statuses = ["all", "active", "completed", "on_hold", "archived"] as const;
@@ -24,7 +25,7 @@ function ProjectTimelinePreview({ project, authenticated, localMilestones }: { p
   const serverProject = authenticated && /^\d+$/.test(project.id);
   const milestonesQuery = trpc.projects.milestones.useQuery({ projectId: serverProject ? Number(project.id) : 1 }, { enabled: serverProject, retry: false });
   const milestones: LocalMilestone[] = serverProject
-    ? (milestonesQuery.data || []).map((milestone) => ({ id: String(milestone.id), projectId: String(milestone.projectId), title: milestone.title, dueDate: milestone.dueDate || "", reminderAt: milestone.reminderAt ? new Date(milestone.reminderAt).toISOString() : undefined, completed: milestone.completed }))
+    ? (milestonesQuery.data || []).map((milestone) => ({ id: String(milestone.id), projectId: String(milestone.projectId), title: milestone.title, color: milestone.color || "#D97706", dueDate: milestone.dueDate || "", reminderAt: milestone.reminderAt ? new Date(milestone.reminderAt).toISOString() : undefined, completed: milestone.completed }))
     : localMilestones.filter((milestone) => milestone.projectId === project.id);
   return <ProjectTimeline milestones={milestones} startDate={project.startDate} endDate={project.endDate} color={project.color} compact />;
 }
@@ -55,6 +56,7 @@ export default function ProjectsScreen() {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [newType, setNewType] = useState<"personal" | "work" | "team" | "other">("personal");
+  const [newColor, setNewColor] = useState("#4F46E5");
 
   const visibleProjects = useMemo(() => projectSource
     .filter((project) => (!query.trim() || project.title.toLowerCase().includes(query.toLowerCase())) && (type === "all" || project.type === type) && (status === "all" || project.status === status))
@@ -68,13 +70,14 @@ export default function ProjectsScreen() {
     setStartDateOpen(false);
     setEndDateOpen(false);
     setNewType("personal");
+    setNewColor("#4F46E5");
   };
 
   const saveProject = async () => {
     if (!title.trim()) return Alert.alert("Project title required", "Add a name before saving.");
     const dateError = getProjectDateError(startDate, endDate);
     if (dateError) return Alert.alert("Invalid project dates", dateError);
-    const input = { title: title.trim(), description: description.trim(), startDate: startDate.trim() || undefined, endDate: endDate.trim() || undefined, type: newType, status: "active" as const, color: newType === "work" ? "#4F46E5" : newType === "team" ? "#0EA5E9" : "#16A34A", icon: newType === "personal" ? "leaf" : "folder" };
+    const input = { title: title.trim(), description: description.trim(), startDate: startDate.trim() || undefined, endDate: endDate.trim() || undefined, type: newType, status: "active" as const, color: newColor, icon: newType === "personal" ? "leaf" : "folder" };
     if (authenticated) await createProjectMutation.mutateAsync(input);
     else await addProject(input);
     resetCreateForm();
@@ -103,7 +106,7 @@ export default function ProjectsScreen() {
         </View>;
       })}</View>
     </ScrollView>
-    <Modal visible={createVisible} transparent animationType="slide" onRequestClose={() => setCreateVisible(false)}><View style={styles.modalBackdrop}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}><View style={[styles.modal, { backgroundColor: colors.background }]}><Text style={[styles.modalTitle, { color: colors.foreground }]}>New project</Text><TextInput value={title} onChangeText={setTitle} placeholder="Project title" placeholderTextColor={colors.muted} style={[styles.input, { color: colors.foreground, borderColor: colors.border }]} /><TextInput value={description} onChangeText={setDescription} placeholder="Description" placeholderTextColor={colors.muted} multiline style={[styles.input, styles.notes, { color: colors.foreground, borderColor: colors.border }]} /><Text style={[styles.modalLabel, { color: colors.muted }]}>START DATE</Text><Pressable onPress={() => setStartDateOpen(true)} style={[styles.dateChoice, { borderColor: colors.border, backgroundColor: colors.surface }]}><Ionicons name="play-outline" size={17} color={colors.primary} /><Text style={[styles.dateChoiceText, { color: startDate ? colors.foreground : colors.muted }]}>{startDate ? formatDateReadable(startDate) : "Select start date"}</Text></Pressable><Text style={[styles.modalLabel, { color: colors.muted }]}>DUE DATE</Text><Pressable onPress={() => setEndDateOpen(true)} style={[styles.dateChoice, { borderColor: colors.border, backgroundColor: colors.surface }]}><Ionicons name="calendar-outline" size={17} color={colors.primary} /><Text style={[styles.dateChoiceText, { color: endDate ? colors.foreground : colors.muted }]}>{endDate ? formatDateReadable(endDate) : "Select due date"}</Text></Pressable><Text style={[styles.dateHint, { color: colors.muted }]}>Dates are optional, but adding them enables the project timeline range and deadline tracking.</Text><View style={styles.typeRow}>{(["personal", "work", "team", "other"] as const).map((item) => <Pressable key={item} onPress={() => setNewType(item)} style={[styles.typeButton, { borderColor: newType === item ? colors.primary : colors.border, backgroundColor: newType === item ? colors.primary : colors.surface }]}><Text style={{ color: newType === item ? "#FFFFFF" : colors.foreground, fontSize: 12, fontWeight: "700" }}>{item}</Text></Pressable>)}</View><Pressable onPress={() => void saveProject()} style={[styles.save, { backgroundColor: colors.primary }]}><Text style={styles.saveText}>Create project</Text></Pressable><Pressable onPress={() => { resetCreateForm(); setCreateVisible(false); }}><Text style={[styles.cancel, { color: colors.muted }]}>Cancel</Text></Pressable></View></ScrollView></View></Modal><DatePicker value={startDate || quickDateKey("Today")} onChange={setStartDate} visible={startDateOpen} onClose={() => setStartDateOpen(false)} /><DatePicker value={endDate || startDate || quickDateKey("Today")} onChange={setEndDate} visible={endDateOpen} onClose={() => setEndDateOpen(false)} minDate={startDate || undefined} />
+    <Modal visible={createVisible} transparent animationType="slide" onRequestClose={() => setCreateVisible(false)}><View style={styles.modalBackdrop}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.modalScroll}><View style={[styles.modal, { backgroundColor: colors.background }]}><Text style={[styles.modalTitle, { color: colors.foreground }]}>New project</Text><TextInput value={title} onChangeText={setTitle} placeholder="Project title" placeholderTextColor={colors.muted} style={[styles.input, { color: colors.foreground, borderColor: colors.border }]} /><TextInput value={description} onChangeText={setDescription} placeholder="Description" placeholderTextColor={colors.muted} multiline style={[styles.input, styles.notes, { color: colors.foreground, borderColor: colors.border }]} /><Text style={[styles.modalLabel, { color: colors.muted }]}>START DATE</Text><Pressable onPress={() => setStartDateOpen(true)} style={[styles.dateChoice, { borderColor: colors.border, backgroundColor: colors.surface }]}><Ionicons name="play-outline" size={17} color={colors.primary} /><Text style={[styles.dateChoiceText, { color: startDate ? colors.foreground : colors.muted }]}>{startDate ? formatDateReadable(startDate) : "Select start date"}</Text></Pressable><Text style={[styles.modalLabel, { color: colors.muted }]}>DUE DATE</Text><Pressable onPress={() => setEndDateOpen(true)} style={[styles.dateChoice, { borderColor: colors.border, backgroundColor: colors.surface }]}><Ionicons name="calendar-outline" size={17} color={colors.primary} /><Text style={[styles.dateChoiceText, { color: endDate ? colors.foreground : colors.muted }]}>{endDate ? formatDateReadable(endDate) : "Select due date"}</Text></Pressable><Text style={[styles.dateHint, { color: colors.muted }]}>Dates are optional, but adding them enables the project timeline range and deadline tracking.</Text><ColorPalette value={newColor} onChange={setNewColor} /><View style={styles.typeRow}>{(["personal", "work", "team", "other"] as const).map((item) => <Pressable key={item} onPress={() => setNewType(item)} style={[styles.typeButton, { borderColor: newType === item ? colors.primary : colors.border, backgroundColor: newType === item ? colors.primary : colors.surface }]}><Text style={{ color: newType === item ? "#FFFFFF" : colors.foreground, fontSize: 12, fontWeight: "700" }}>{item}</Text></Pressable>)}</View><Pressable onPress={() => void saveProject()} style={[styles.save, { backgroundColor: colors.primary }]}><Text style={styles.saveText}>Create project</Text></Pressable><Pressable onPress={() => { resetCreateForm(); setCreateVisible(false); }}><Text style={[styles.cancel, { color: colors.muted }]}>Cancel</Text></Pressable></View></ScrollView></View></Modal><DatePicker value={startDate || quickDateKey("Today")} onChange={setStartDate} visible={startDateOpen} onClose={() => setStartDateOpen(false)} /><DatePicker value={endDate || startDate || quickDateKey("Today")} onChange={setEndDate} visible={endDateOpen} onClose={() => setEndDateOpen(false)} minDate={startDate || undefined} />
   </ScreenContainer>;
 }
 

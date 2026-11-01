@@ -3,16 +3,16 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { isValidDateKey, isValidTime, quickDateKey } from "@/lib/task-date";
 import { filterProjectLinkedTasks } from "@/lib/project-deletion";
 
-export type LocalTask = { id: string; title: string; due: string; startDate?: string; dueDate: string; dueTime?: string; priority: "Low" | "Medium" | "High"; project: string; projectId?: string; milestoneId?: string; category: string; recurrence?: string; complete: boolean; notes?: string };
-type TaskInput = Pick<LocalTask, "title" | "project" | "projectId" | "milestoneId" | "category" | "priority" | "due" | "startDate" | "dueDate" | "dueTime"> & { notes?: string; recurrence?: string };
+export type LocalTask = { id: string; title: string; color: string; due: string; startDate?: string; dueDate: string; dueTime?: string; priority: "Low" | "Medium" | "High"; project: string; projectId?: string; milestoneId?: string; category: string; recurrence?: string; complete: boolean; notes?: string };
+type TaskInput = Pick<LocalTask, "title" | "color" | "project" | "projectId" | "milestoneId" | "category" | "priority" | "due" | "startDate" | "dueDate" | "dueTime"> & { notes?: string; recurrence?: string };
 const STORAGE_KEY = "personal-assistant.tasks.v2";
 const LEGACY_KEY = "personal-assistant.tasks.v1";
 const today = quickDateKey("Today");
 const seedTasks: LocalTask[] = [
-  { id: "1", title: "Prepare weekly priorities", due: "Today · 9:00 AM", dueDate: today, dueTime: "09:00", priority: "High", project: "Personal", category: "Planning", complete: false },
-  { id: "2", title: "Review project milestones", due: "Today · 11:30 AM", dueDate: today, dueTime: "11:30", priority: "Medium", project: "Website refresh", category: "Work", complete: true },
-  { id: "3", title: "Call with design team", due: "Today · 3:00 PM", dueDate: today, dueTime: "15:00", priority: "Medium", project: "Website refresh", category: "Work", complete: false },
-  { id: "4", title: "Plan next week’s meals", due: "Tomorrow", dueDate: quickDateKey("Tomorrow"), dueTime: "18:00", priority: "Low", project: "Personal", category: "Personal", complete: false },
+  { id: "1", title: "Prepare weekly priorities", color: "#2563EB", due: "Today · 9:00 AM", dueDate: today, dueTime: "09:00", priority: "High", project: "Personal", category: "Planning", complete: false },
+  { id: "2", title: "Review project milestones", color: "#D97706", due: "Today · 11:30 AM", dueDate: today, dueTime: "11:30", priority: "Medium", project: "Website refresh", category: "Work", complete: true },
+  { id: "3", title: "Call with design team", color: "#7C3AED", due: "Today · 3:00 PM", dueDate: today, dueTime: "15:00", priority: "Medium", project: "Website refresh", category: "Work", complete: false },
+  { id: "4", title: "Plan next week’s meals", color: "#16A34A", due: "Tomorrow", dueDate: quickDateKey("Tomorrow"), dueTime: "18:00", priority: "Low", project: "Personal", category: "Personal", complete: false },
 ];
 
 type TaskStore = { tasks: LocalTask[]; hydrated: boolean; addTask: (input: TaskInput) => Promise<void>; updateTask: (id: string, input: Partial<TaskInput>) => Promise<void>; deleteTask: (id: string) => Promise<void>; deleteProjectTasks: (projectId: string, projectTitle?: string) => Promise<void>; toggleTask: (id: string) => Promise<void> };
