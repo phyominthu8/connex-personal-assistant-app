@@ -13,6 +13,7 @@ import { formatDateReadable, formatTimeReadable, getTaskDateError, quickDateKey 
 import { TimePicker } from "@/components/task-pickers";
 import { usePreferences } from "@/lib/preferences";
 import { syncTaskReminder } from "@/lib/task-reminders";
+import { filterMilestonesForProject } from "@/lib/task-milestones";
 
 export default function TaskEditorScreen() {
   const colors = useColors();
@@ -52,21 +53,22 @@ export default function TaskEditorScreen() {
   }, [localProjects, localTasks, params.id, serverTasksQuery.data, user, preferences.notificationTime]);
   const serverMilestonesQuery = trpc.projects.milestones.useQuery({ projectId: Number(selectedProjectId) }, { enabled: Boolean(user && selectedProjectId && /^\\d+$/.test(selectedProjectId)), retry: false });
   const availableProjects = user ? (serverProjectsQuery.data || []).map((project) => ({ id: String(project.id), title: project.title })) : localProjects.map((project) => ({ id: project.id, title: project.title }));
-  const availableMilestones = user ? (serverMilestonesQuery.data || []).map((milestone) => ({ id: String(milestone.id), title: milestone.title })) : localMilestones.filter((milestone) => milestone.projectId === selectedProjectId).map((milestone) => ({ id: milestone.id, title: milestone.title }));
+  const availableMilestones = user ? filterMilestonesForProject(serverMilestonesQuery.data || [], selectedProjectId).map((milestone) => ({ id: String(milestone.id), title: milestone.title })) : filterMilestonesForProject(localMilestones, selectedProjectId).map((milestone) => ({ id: milestone.id, title: milestone.title }));
   const filteredMilestones = availableMilestones.filter((milestone) => milestone.title.toLowerCase().includes(milestoneSearch.trim().toLowerCase()));
 
   const save = async () => {
     if (!title.trim()) return Alert.alert("Add a title", "Give your task a short, clear name first.");
     const dateError = getTaskDateError(startDate, date);
     if (dateError) return Alert.alert("Check dates", dateError);
+    const milestoneIdForSelectedProject = selectedMilestoneId && availableMilestones.some((milestone) => milestone.id === selectedMilestoneId) ? selectedMilestoneId : "";
     let savedTaskId = params.id as string | undefined;
     if (user) {
-      const payload = { title: title.trim(), project: selectedProject || "Personal", projectId: selectedProjectId ? Number(selectedProjectId) : undefined, milestoneId: selectedMilestoneId ? Number(selectedMilestoneId) : undefined, category, recurrence: recurrence === "Never" ? undefined : recurrence, priority, dueLabel: formatDateReadable(date), startDate, dueDate: date, description: notes.trim() || undefined };
-      if (editing) await updateTaskMutation.mutateAsync({ id: Number(params.id), ...payload, milestoneId: selectedMilestoneId ? Number(selectedMilestoneId) : null }); else savedTaskId = String(await createTaskMutation.mutateAsync(payload));
+      const payload = { title: title.trim(), project: selectedProject || "Personal", projectId: selectedProjectId ? Number(selectedProjectId) : undefined, milestoneId: milestoneIdForSelectedProject ? Number(milestoneIdForSelectedProject) : undefined, category, recurrence: recurrence === "Never" ? undefined : recurrence, priority, dueLabel: formatDateReadable(date), startDate, dueDate: date, description: notes.trim() || undefined };
+      if (editing) await updateTaskMutation.mutateAsync({ id: Number(params.id), ...payload, milestoneId: milestoneIdForSelectedProject ? Number(milestoneIdForSelectedProject) : null }); else savedTaskId = String(await createTaskMutation.mutateAsync(payload));
     } else if (editing) {
-      await updateTask(params.id as string, { title: title.trim(), project: selectedProject || "Personal", projectId: selectedProjectId || undefined, milestoneId: selectedMilestoneId || undefined, category, recurrence: recurrence === "Never" ? undefined : recurrence, priority, due: formatDateReadable(date), startDate, dueDate: date, notes: notes.trim() || undefined });
+      await updateTask(params.id as string, { title: title.trim(), project: selectedProject || "Personal", projectId: selectedProjectId || undefined, milestoneId: milestoneIdForSelectedProject || undefined, category, recurrence: recurrence === "Never" ? undefined : recurrence, priority, due: formatDateReadable(date), startDate, dueDate: date, notes: notes.trim() || undefined });
     } else {
-      await addTask({ title: title.trim(), project: selectedProject || "Personal", projectId: selectedProjectId || undefined, milestoneId: selectedMilestoneId || undefined, category, recurrence: recurrence === "Never" ? undefined : recurrence, priority, due: formatDateReadable(date), startDate, dueDate: date, notes: notes.trim() || undefined });
+      await addTask({ title: title.trim(), project: selectedProject || "Personal", projectId: selectedProjectId || undefined, milestoneId: milestoneIdForSelectedProject || undefined, category, recurrence: recurrence === "Never" ? undefined : recurrence, priority, due: formatDateReadable(date), startDate, dueDate: date, notes: notes.trim() || undefined });
     }
     if (savedTaskId) {
       await syncTaskReminder(savedTaskId, title.trim(), date, true, reminderTime, preferences);
