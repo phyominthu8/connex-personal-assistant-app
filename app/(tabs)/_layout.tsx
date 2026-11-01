@@ -36,28 +36,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Calendar",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="calendar" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="calendar" color={typeof color === "string" ? color : colors.foreground} />,
         }}
       />
       <Tabs.Screen
         name="tasks"
         options={{
           title: "Tasks",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.circle.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.circle.fill" color={typeof color === "string" ? color : colors.foreground} />,
         }}
       />
       <Tabs.Screen
         name="projects"
         options={{
           title: "Projects",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="folder.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="folder.fill" color={typeof color === "string" ? color : colors.foreground} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gearshape.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gearshape.fill" color={typeof color === "string" ? color : colors.foreground} />,
         }}
       />
     </Tabs>
