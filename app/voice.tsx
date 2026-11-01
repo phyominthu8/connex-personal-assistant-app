@@ -10,6 +10,8 @@ import { useProjects } from "@/lib/project-store";
 import { isOverdueDate } from "@/lib/task-milestones";
 import { matchesTaskDateFilter, toDateKey, type TaskDateFilter } from "@/lib/task-date";
 import { sortSearchResultsByDueDate, type VoiceSearchResult } from "@/lib/voice-search";
+import { useAuth } from "@/hooks/use-auth";
+import { trpc } from "@/lib/trpc";
 
 type SearchResult = VoiceSearchResult & { kind: "task" | "project" | "milestone"; subtitle: string; projectId?: string; project?: string; milestoneId?: string };
 
@@ -32,6 +34,8 @@ export default function VoiceAssistantScreen() {
   const colors = useColors();
   const { tasks } = useLocalTasks();
   const { projects, milestones } = useProjects();
+  const { user } = useAuth();
+  const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [textCommand, setTextCommand] = useState("");
@@ -39,6 +43,10 @@ export default function VoiceAssistantScreen() {
   const [resultsVisible, setResultsVisible] = useState(false);
   const [sortAscending, setSortAscending] = useState(true);
   const today = toDateKey(new Date());
+  const searchableProjects = useMemo(() => {
+    const combined = [...projects, ...(serverProjectsQuery.data || []).map((project) => ({ id: String(project.id), title: project.title, description: project.description || undefined, startDate: project.startDate || undefined, endDate: project.endDate || undefined, type: project.type as typeof projects[number]["type"], status: project.status as typeof projects[number]["status"], color: project.color || "#4F46E5", icon: project.icon || "folder" }))];
+    return Array.from(new Map(combined.map((project) => [project.title.trim().toLowerCase(), project])).values());
+  }, [projects, serverProjectsQuery.data]);
 
   const searchResults = useMemo<SearchResult[]>(() => {
     if (intent.kind !== "search") return [];
@@ -48,14 +56,14 @@ export default function VoiceAssistantScreen() {
       return tasks.filter((task) => matchesText(`${task.title} ${task.project}`) && matchesTaskDateFilter({ dueDate: task.dueDate, completed: task.complete }, (intent.filter || "All") as TaskDateFilter)).map((task) => ({ kind: "task", id: task.id, title: task.title, dueDate: task.dueDate, subtitle: `${task.project} · ${task.due || task.dueDate}`, project: task.project, projectId: task.projectId, milestoneId: task.milestoneId }));
     }
     if (intent.entity === "projects") {
-      return projects.filter((project) => matchesText(project.title) && projectMatches(project, intent.filter, today)).map((project) => ({ kind: "project", id: project.id, title: project.title, dueDate: project.endDate, subtitle: `${project.status.replace("_", " ")}${project.endDate ? ` · Due ${project.endDate}` : ""}`, projectId: project.id }));
+      return searchableProjects.filter((project) => matchesText(project.title) && projectMatches(project, intent.filter, today)).map((project) => ({ kind: "project", id: project.id, title: project.title, dueDate: project.endDate, subtitle: `${project.status.replace("_", " ")}${project.endDate ? ` · Due ${project.endDate}` : ""}`, projectId: project.id }));
     }
     return milestones.filter((milestone) => {
       const project = projects.find((item) => item.id === milestone.projectId);
       const statusMatch = intent.filter === "Completed" ? milestone.completed : intent.filter === "Active" ? !milestone.completed : intent.filter === "Overdue" ? !milestone.completed && isOverdueDate(milestone.dueDate, today) : true;
       return statusMatch && matchesText(`${milestone.title} ${project?.title || ""}`);
     }).map((milestone) => ({ kind: "milestone", id: milestone.id, title: milestone.title, dueDate: milestone.dueDate, subtitle: `${projects.find((project) => project.id === milestone.projectId)?.title || "Project"}${milestone.dueDate ? ` · Due ${milestone.dueDate}` : ""}`, projectId: milestone.projectId, milestoneId: milestone.id }));
-  }, [intent, milestones, projects, tasks, today]);
+  }, [intent, milestones, projects, searchableProjects, tasks, today]);
   const sortedResults = useMemo(() => sortSearchResultsByDueDate(searchResults, sortAscending), [searchResults, sortAscending]);
 
   const startListening = () => { setListening((value) => !value); if (!listening) Alert.alert("Listening", "Speak your command, or use the text fallback below."); };
