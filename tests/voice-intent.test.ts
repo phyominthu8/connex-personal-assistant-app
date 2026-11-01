@@ -10,6 +10,8 @@ describe("voice intent parsing", () => {
   it("recognizes milestone creation and filtered searches", () => {
     expect(parseVoiceIntent("Create a new milestone in Project02: Launch website")).toEqual({ kind: "create-milestone", title: "Launch website", projectName: "Project02" });
     expect(parseVoiceIntent("Find overdue tasks in project Project02")).toMatchObject({ kind: "search", entity: "tasks", filter: "Overdue", projectName: "Project02" });
+    expect(parseVoiceIntent("Find overdue milestones")).toMatchObject({ kind: "search", entity: "milestones", filter: "Overdue" });
+    expect(parseVoiceIntent("Find overdue projects")).toMatchObject({ kind: "search", entity: "projects", filter: "Overdue" });
   });
 
   it("keeps ordinary commands on the task path", () => {

@@ -20,9 +20,9 @@ import { isOverdueDate } from "@/lib/task-milestones";
 
 const types = ["all", "personal", "work", "team", "other"] as const;
 const statuses = ["all", "active", "completed", "on_hold", "archived"] as const;
-type ProjectListItem = { id: string; title: string; description?: string | null; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
+export type ProjectListItem = { id: string; title: string; description?: string | null; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
 
-function matchesProjectDateFilter(project: ProjectListItem, filter: string | undefined, now = new Date()) {
+export function matchesProjectDateFilter(project: ProjectListItem, filter: string | undefined, now = new Date()) {
   if (!filter || filter === "All" || filter === "Completed") return true;
   const today = toDateKey(now);
   if (filter === "Overdue") return Boolean(project.endDate && project.endDate < today && project.status !== "completed");
