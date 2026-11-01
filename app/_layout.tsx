@@ -21,6 +21,7 @@ import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-run
 import { LocalStoreProvider } from "@/lib/local-store";
 import { ProjectStoreProvider } from "@/lib/project-store";
 import { PreferencesProvider } from "@/lib/preferences";
+import { VoiceFab } from "@/components/voice-fab";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -96,6 +97,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="oauth/callback" />
           </Stack>
+          <VoiceFab />
           <StatusBar style="auto" />
           </ProjectStoreProvider>
           </LocalStoreProvider>
