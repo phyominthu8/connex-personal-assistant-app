@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterMilestonesForProject } from "../lib/task-milestones";
+import { filterMilestonesForProject, isOverdueDate } from "../lib/task-milestones";
 
 describe("task milestone filtering", () => {
   const milestones = [
@@ -15,5 +15,11 @@ describe("task milestone filtering", () => {
 
   it("returns no milestones when no project is selected", () => {
     expect(filterMilestonesForProject(milestones, "")).toEqual([]);
+  });
+
+  it("identifies dates before today as overdue", () => {
+    expect(isOverdueDate("2026-10-31", "2026-11-01")).toBe(true);
+    expect(isOverdueDate("2026-11-01", "2026-11-01")).toBe(false);
+    expect(isOverdueDate(undefined, "2026-11-01")).toBe(false);
   });
 });

@@ -13,7 +13,7 @@ import { formatDateReadable, formatTimeReadable, getTaskDateError, quickDateKey 
 import { TimePicker } from "@/components/task-pickers";
 import { usePreferences } from "@/lib/preferences";
 import { syncTaskReminder } from "@/lib/task-reminders";
-import { filterMilestonesForProject } from "@/lib/task-milestones";
+import { filterMilestonesForProject, isOverdueDate } from "@/lib/task-milestones";
 
 export default function TaskEditorScreen() {
   const colors = useColors();
@@ -52,8 +52,9 @@ export default function TaskEditorScreen() {
     setTitle(source.title); setNotes(("description" in source ? source.description : source.notes) || ""); setPriority(source.priority as "Low" | "Medium" | "High"); setCategory(("category" in source && source.category) || "General"); setRecurrence(("recurrence" in source && source.recurrence) || "Never"); setStartDate(("startDate" in source && source.startDate) || quickDateKey("Today")); setDate(("dueDate" in source && source.dueDate) || quickDateKey("Today")); setSelectedProject(source.project || "Personal"); setSelectedProjectId(("projectId" in source && source.projectId ? String(source.projectId) : localProjects.find((project) => project.title === source.project)?.id || "")); setSelectedMilestoneId(("milestoneId" in source && source.milestoneId ? String(source.milestoneId) : "")); setReminderTime(preferences.notificationTime);
   }, [localProjects, localTasks, params.id, serverTasksQuery.data, user, preferences.notificationTime]);
   const serverMilestonesQuery = trpc.projects.milestones.useQuery({ projectId: Number(selectedProjectId) }, { enabled: Boolean(user && selectedProjectId && /^\\d+$/.test(selectedProjectId)), retry: false });
-  const availableProjects = user ? (serverProjectsQuery.data || []).map((project) => ({ id: String(project.id), title: project.title })) : localProjects.map((project) => ({ id: project.id, title: project.title }));
-  const availableMilestones = user ? filterMilestonesForProject(serverMilestonesQuery.data || [], selectedProjectId).map((milestone) => ({ id: String(milestone.id), title: milestone.title })) : filterMilestonesForProject(localMilestones, selectedProjectId).map((milestone) => ({ id: milestone.id, title: milestone.title }));
+  const todayKey = quickDateKey("Today");
+  const availableProjects = (user ? (serverProjectsQuery.data || []).map((project) => ({ id: String(project.id), title: project.title, endDate: project.endDate || undefined })) : localProjects.map((project) => ({ id: project.id, title: project.title, endDate: project.endDate }))).filter((project) => !isOverdueDate(project.endDate, todayKey) || project.id === selectedProjectId || projectLocked);
+  const availableMilestones = (user ? filterMilestonesForProject(serverMilestonesQuery.data || [], selectedProjectId).map((milestone) => ({ id: String(milestone.id), title: milestone.title, dueDate: milestone.dueDate || undefined })) : filterMilestonesForProject(localMilestones, selectedProjectId).map((milestone) => ({ id: milestone.id, title: milestone.title, dueDate: milestone.dueDate }))).filter((milestone) => !isOverdueDate(milestone.dueDate, todayKey) || (editing && milestone.id === selectedMilestoneId));
   const filteredMilestones = availableMilestones.filter((milestone) => milestone.title.toLowerCase().includes(milestoneSearch.trim().toLowerCase()));
 
   const save = async () => {

@@ -4,3 +4,7 @@ export function filterMilestonesForProject<T extends ProjectScopedMilestone>(mil
   if (!projectId) return [];
   return milestones.filter((milestone) => String(milestone.projectId) === String(projectId));
 }
+
+export function isOverdueDate(date: string | undefined, today: string): boolean {
+  return Boolean(date && date < today);
+}
