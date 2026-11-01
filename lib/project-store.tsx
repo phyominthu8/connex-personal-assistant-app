@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-export type LocalMilestone = { id: string; projectId: string; title: string; dueDate: string; reminderAt?: string; completed: boolean };
+export type LocalMilestone = { id: string; projectId: string; title: string; description?: string; dueDate: string; reminderAt?: string; completed: boolean };
 export type LocalProject = { id: string; title: string; description?: string; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
 const PROJECTS_KEY = "personal-assistant.projects.v1";
 const MILESTONES_KEY = "personal-assistant.milestones.v1";

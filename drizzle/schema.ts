@@ -91,6 +91,7 @@ export const milestones = mysqlTable("milestones", {
   userId: int("userId").notNull(),
   projectId: int("projectId").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
   dueDate: varchar("dueDate", { length: 10 }),
   reminderAt: timestamp("reminderAt"),
   completed: boolean("completed").notNull().default(false),

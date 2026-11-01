@@ -78,6 +78,13 @@
       "when": 1791192468516,
       "tag": "0010_clammy_william_stryker",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1793505530980,
+      "tag": "0011_nostalgic_silverclaw",
+      "breakpoints": true
     }
   ]
 }
