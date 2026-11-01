@@ -28,6 +28,7 @@ export function parseVoiceIntent(input: string): VoiceIntent {
       const title = extractNamedValue(remainder.slice(projectSplit[0].length));
       return { kind: "create-milestone", title, projectName };
     }
+    return { kind: "create-milestone", title: extractNamedValue(remainder), projectName: "" };
   }
 
   const taskMatch = text.match(/^(?:make|create|add)\s+(?:a\s+)?new\s+task\b([\s\S]*)$/i);
