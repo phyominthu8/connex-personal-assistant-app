@@ -24,6 +24,7 @@ export type ProjectListItem = { id: string; title: string; description?: string 
 
 export function matchesProjectDateFilter(project: ProjectListItem, filter: string | undefined, now = new Date()) {
   if (!filter || filter === "All" || filter === "Completed") return true;
+  if (filter === "Active") return project.status === "active";
   const today = toDateKey(now);
   if (filter === "Overdue") return Boolean(project.endDate && project.endDate < today && project.status !== "completed");
   const endOfWeek = new Date(now);
@@ -60,7 +61,7 @@ export default function ProjectsScreen() {
   const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
   const [type, setType] = useState<(typeof types)[number]>("all");
   const [viewMode, setViewMode] = useState<"cards" | "timeline">("timeline");
-  const [status, setStatus] = useState<(typeof statuses)[number]>(params.filter === "Completed" ? "completed" : "all");
+  const [status, setStatus] = useState<(typeof statuses)[number]>(params.filter === "Completed" ? "completed" : params.filter === "Active" ? "active" : "all");
   const [sortNewest, setSortNewest] = useState(true);
   const [createVisible, setCreateVisible] = useState(params.create === "1");
   const [title, setTitle] = useState(typeof params.title === "string" ? params.title : "");
@@ -79,7 +80,7 @@ export default function ProjectsScreen() {
     .sort((a, b) => sortNewest ? b.id.localeCompare(a.id) : a.title.localeCompare(b.title)), [projectSource, query, sortNewest, status, type]);
   const milestoneResults = milestones.filter((milestone) => {
     const matchesText = !milestoneQuery.trim() || milestone.title.toLowerCase().includes(milestoneQuery.toLowerCase()) || projectSource.find((project) => project.id === milestone.projectId)?.title.toLowerCase().includes(milestoneQuery.toLowerCase());
-    const matchesFilter = params.filter === "Completed" ? milestone.completed : params.filter === "Overdue" ? !milestone.completed && isOverdueDate(milestone.dueDate, quickDateKey("Today")) : true;
+    const matchesFilter = params.filter === "Completed" ? milestone.completed : params.filter === "Active" ? !milestone.completed : params.filter === "Overdue" ? !milestone.completed && isOverdueDate(milestone.dueDate, quickDateKey("Today")) : true;
     return matchesText && matchesFilter;
   });
 

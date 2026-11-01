@@ -26,11 +26,11 @@ export default function TasksScreen() {
   const updateMutation = trpc.tasks.update.useMutation({ onSuccess: () => void serverTasksQuery.refetch() });
   const deleteMutation = trpc.tasks.delete.useMutation({ onSuccess: () => void serverTasksQuery.refetch() });
   const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
-  const initialFilter = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Completed"].includes(params.filter || "") ? params.filter as TaskDateFilter : "All";
+  const initialFilter = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Active", "Completed"].includes(params.filter || "") ? params.filter as TaskDateFilter : "All";
   const [filter, setFilter] = useState<TaskDateFilter>(initialFilter);
   const [sort, setSort] = useState<TaskSortOption>("created");
   const [sortVisible, setSortVisible] = useState(false);
-  const filters: TaskDateFilter[] = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Completed"];
+  const filters: TaskDateFilter[] = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Active", "Completed"];
   const tasks = user && serverTasksQuery.data ? serverTasksQuery.data.map((task) => ({ id: String(task.id), title: task.title, due: task.dueDate ? formatDateReadable(task.dueDate) : task.dueLabel.split(" · ")[0], dueDate: task.dueDate || "", dueTime: task.dueTime || undefined, priority: task.priority, color: task.color || "#2563EB", project: task.project, projectId: task.projectId ? String(task.projectId) : undefined, milestoneId: task.milestoneId ? String(task.milestoneId) : undefined, complete: task.completed, createdAt: task.createdAt })) : localTasks;
 
   useEffect(() => { AsyncStorage.getItem(SORT_STORAGE_KEY).then((value) => { if (value && validSortOptions.includes(value as TaskSortOption)) setSort(value as TaskSortOption); }).catch(() => undefined); }, []);

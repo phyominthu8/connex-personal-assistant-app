@@ -1,4 +1,4 @@
-export type TaskDateFilter = "All" | "Today" | "Tomorrow" | "This Week" | "Overdue" | "Completed";
+export type TaskDateFilter = "All" | "Today" | "Tomorrow" | "This Week" | "Overdue" | "Active" | "Completed";
 
 export function toDateKey(date: Date) {
   const year = date.getFullYear();
@@ -55,6 +55,7 @@ export function quickDateKey(option: "Today" | "Tomorrow" | "Next Week", now = n
 
 export function matchesTaskDateFilter(task: { dueDate?: string; completed: boolean }, filter: TaskDateFilter, now = new Date()) {
   if (filter === "All") return true;
+  if (filter === "Active") return !task.completed;
   if (filter === "Completed") return task.completed;
   if (!task.dueDate) return false;
   const today = toDateKey(now);

@@ -12,6 +12,9 @@ describe("voice intent parsing", () => {
     expect(parseVoiceIntent("Find overdue tasks in project Project02")).toMatchObject({ kind: "search", entity: "tasks", filter: "Overdue", projectName: "Project02" });
     expect(parseVoiceIntent("Find overdue milestones")).toMatchObject({ kind: "search", entity: "milestones", filter: "Overdue" });
     expect(parseVoiceIntent("Find overdue projects")).toMatchObject({ kind: "search", entity: "projects", filter: "Overdue" });
+    expect(parseVoiceIntent("Find ongoing tasks")).toMatchObject({ kind: "search", entity: "tasks", filter: "Active" });
+    expect(parseVoiceIntent("Show active projects")).toMatchObject({ kind: "search", entity: "projects", filter: "Active" });
+    expect(parseVoiceIntent("Find completed milestones")).toMatchObject({ kind: "search", entity: "milestones", filter: "Completed" });
   });
 
   it("keeps ordinary commands on the task path", () => {
