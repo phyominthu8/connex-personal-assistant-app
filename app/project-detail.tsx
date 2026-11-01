@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,8 +13,7 @@ import { getProjectDateError } from "@/lib/project-date";
 import { ProjectTimeline } from "@/components/project-timeline";
 import { usePreferences } from "@/lib/preferences";
 import { syncProjectDeadlineReminder, cancelProjectDeadlineReminder, projectDeadlineDate } from "@/lib/project-deadline-reminders";
-import { DatePicker } from "@/components/task-pickers";
-import { TimePicker } from "@/components/task-pickers";
+import { DatePicker, TimePicker } from "@/components/task-pickers";
 import { ColorPalette } from "@/components/color-palette";
 import { normalizeMilestoneReminder } from "@/lib/milestone-date";
 
@@ -70,6 +69,8 @@ export default function ProjectDetailScreen() {
 
   useEffect(() => {
     if (!project) return;
+    // This effect hydrates the edit form when the project query resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTitle(project.title); setDescription(project.description || ""); setStartDate(project.startDate || ""); setEndDate(project.endDate || ""); setStatus(project.status); setProjectColor(project.color || "#4F46E5"); setReminderTime(preferences.notificationTime);
     if (params.edit === "1") setEditVisible(true);
     if (params.newMilestone === "1") {

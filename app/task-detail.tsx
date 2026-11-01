@@ -26,6 +26,8 @@ export default function TaskDetailScreen() {
   const title = task?.title || params.title || "Task";
   const project = task?.project || params.project || "Personal";
   const [complete, setComplete] = useState(Boolean(task && ("completed" in task ? task.completed : task.complete)));
+  // Keep the local toggle state synchronized when the persisted task arrives or changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setComplete(Boolean(task && ("completed" in task ? task.completed : task.complete))); }, [task]);
   const toggle = () => { const next = !complete; setComplete(next); if (user && params.id) void updateMutation.mutateAsync({ id: Number(params.id), completed: next }); else if (params.id) void toggleTask(params.id); };
   const confirmDelete = () => Alert.alert("Delete task?", `Delete “${title}”? This action cannot be undone.`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => { if (user && params.id) void deleteMutation.mutateAsync({ id: Number(params.id) }); else if (params.id) { void deleteTask(params.id); router.back(); } } }]);

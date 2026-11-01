@@ -8,9 +8,8 @@ import { useLocalTasks } from "@/lib/local-store";
 import { useProjects } from "@/lib/project-store";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
-import { DatePicker } from "@/components/task-pickers";
+import { DatePicker, TimePicker } from "@/components/task-pickers";
 import { formatDateReadable, formatTimeReadable, getTaskDateError, quickDateKey } from "@/lib/task-date";
-import { TimePicker } from "@/components/task-pickers";
 import { ColorPalette } from "@/components/color-palette";
 import { usePreferences } from "@/lib/preferences";
 import { syncTaskReminder } from "@/lib/task-reminders";
@@ -54,6 +53,8 @@ export default function TaskEditorScreen() {
       const projectId = params.projectId || "";
       const localProject = localProjects.find((project) => project.id === projectId);
       const serverProject = (serverProjectsQuery.data || []).find((project) => String(project.id) === projectId);
+      // This effect hydrates the inherited project color after project data resolves.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (localProject?.color) setColor(localProject.color);
       else if (serverProject?.color) setColor(serverProject.color);
       return;

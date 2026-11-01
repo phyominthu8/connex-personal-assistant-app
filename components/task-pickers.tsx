@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/use-colors";
@@ -16,7 +16,7 @@ export function DatePicker({ value, onChange, visible, onClose, minDate, maxDate
   const monthDate = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
   const monthLabel = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const firstDay = monthDate.getDay();
-  const days = useMemo(() => Array.from({ length: 35 }, (_, index) => index - firstDay + 1), [firstDay]);
+  const days = Array.from({ length: 35 }, (_, index) => index - firstDay + 1);
   return <PickerSheet visible={visible} title="Choose date" onClose={onClose}><View style={styles.quickRow}>{(["Today", "Tomorrow", "Next Week"] as const).map((option) => <Pressable key={option} onPress={() => { const next = quickDateKey(option); if (isValidDateKey(next, minDate, maxDate)) { onChange(next); onClose(); } }} style={[styles.quickChip, { borderColor: colors.border }]}><Text style={[styles.quickText, { color: colors.primary }]}>{option}</Text></Pressable>)}</View><View style={styles.monthNav}><Pressable onPress={() => setMonthOffset((offset) => offset - 1)}><Ionicons name="chevron-back" size={20} color={colors.foreground} /></Pressable><Text style={[styles.monthLabel, { color: colors.foreground }]}>{monthLabel}</Text><Pressable onPress={() => setMonthOffset((offset) => offset + 1)}><Ionicons name="chevron-forward" size={20} color={colors.foreground} /></Pressable></View><View style={styles.weekRow}>{["S", "M", "T", "W", "T", "F", "S"].map((day, index) => <Text key={`${day}-${index}`} style={[styles.weekday, { color: colors.muted }]}>{day}</Text>)}</View><View style={styles.grid}>{days.map((day, index) => { const key = day > 0 && day <= new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate() ? toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth(), day)) : ""; const enabled = Boolean(key) && isValidDateKey(key, minDate, maxDate); return <Pressable key={`${key}-${index}`} disabled={!enabled} onPress={() => { onChange(key); onClose(); }} style={[styles.day, key === value && { backgroundColor: colors.primary }, !enabled && styles.disabledDay]}><Text style={{ color: key === value ? "#FFFFFF" : colors.foreground }}>{day > 0 ? day : ""}</Text></Pressable>; })}</View><Text style={[styles.selected, { color: colors.muted }]}>{formatDateReadable(value)}</Text></PickerSheet>;
 }
 
