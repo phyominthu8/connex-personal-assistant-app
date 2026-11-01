@@ -14,13 +14,25 @@ import { getProjectDateError } from "@/lib/project-date";
 import { useAuth } from "@/hooks/use-auth";
 import { trpc } from "@/lib/trpc";
 import { DatePicker } from "@/components/task-pickers";
-import { formatDateReadable, quickDateKey } from "@/lib/task-date";
+import { formatDateReadable, quickDateKey, toDateKey } from "@/lib/task-date";
 import { ColorPalette } from "@/components/color-palette";
 import { isOverdueDate } from "@/lib/task-milestones";
 
 const types = ["all", "personal", "work", "team", "other"] as const;
 const statuses = ["all", "active", "completed", "on_hold", "archived"] as const;
 type ProjectListItem = { id: string; title: string; description?: string | null; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
+
+function matchesProjectDateFilter(project: ProjectListItem, filter: string | undefined, now = new Date()) {
+  if (!filter || filter === "All" || filter === "Completed") return true;
+  const today = toDateKey(now);
+  if (filter === "Overdue") return Boolean(project.endDate && project.endDate < today && project.status !== "completed");
+  const endOfWeek = new Date(now);
+  endOfWeek.setDate(endOfWeek.getDate() + (7 - endOfWeek.getDay()));
+  const weekEnd = toDateKey(endOfWeek);
+  if (filter === "Today") return Boolean(project.startDate && project.endDate && project.startDate <= today && project.endDate >= today);
+  if (filter === "This Week") return Boolean(project.startDate && project.startDate <= weekEnd && (!project.endDate || project.endDate >= today));
+  return true;
+}
 
 function ProjectTimelinePreview({ project, authenticated, localMilestones }: { project: ProjectListItem; authenticated: boolean; localMilestones: LocalMilestone[] }) {
   const serverProject = authenticated && /^\d+$/.test(project.id);
@@ -63,7 +75,7 @@ export default function ProjectsScreen() {
   const milestoneRouted = useRef(false);
 
   const visibleProjects = useMemo(() => projectSource
-    .filter((project) => (!query.trim() || project.title.toLowerCase().includes(query.toLowerCase())) && (type === "all" || project.type === type) && (status === "all" || project.status === status))
+    .filter((project) => (!query.trim() || project.title.toLowerCase().includes(query.toLowerCase())) && (type === "all" || project.type === type) && (status === "all" || project.status === status) && matchesProjectDateFilter(project, params.filter))
     .sort((a, b) => sortNewest ? b.id.localeCompare(a.id) : a.title.localeCompare(b.title)), [projectSource, query, sortNewest, status, type]);
   const milestoneResults = milestones.filter((milestone) => {
     const matchesText = !milestoneQuery.trim() || milestone.title.toLowerCase().includes(milestoneQuery.toLowerCase()) || projectSource.find((project) => project.id === milestone.projectId)?.title.toLowerCase().includes(milestoneQuery.toLowerCase());
