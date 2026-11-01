@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from "expo-audio";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
@@ -42,6 +44,7 @@ export default function VoiceAssistantScreen() {
   const { projects, milestones } = useProjects();
   const { user } = useAuth();
   const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [textCommand, setTextCommand] = useState("");
@@ -77,7 +80,30 @@ export default function VoiceAssistantScreen() {
   }, [intent, milestones, projects, searchableProjects, tasks, today]);
   const sortedResults = useMemo(() => sortSearchResultsByDueDate(searchResults, sortAscending), [searchResults, sortAscending]);
 
-  const startListening = () => { setListening((value) => !value); if (!listening) Alert.alert("Listening", "Speak your command, or use the text fallback below."); };
+  const startListening = async () => {
+    try {
+      if (listening) {
+        await recorder.stop();
+        setListening(false);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+        Alert.alert("Recording complete", recorder.uri ? "Your recording was captured. Speech-to-text is not connected yet; use Text fallback to run the command." : "No recording file was produced.");
+        return;
+      }
+      const permission = await requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Microphone permission needed", "Connex needs microphone access to listen to voice commands. Enable Microphone in Android Settings, then try again.");
+        return;
+      }
+      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setListening(true);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+    } catch (error) {
+      setListening(false);
+      Alert.alert("Could not start microphone", error instanceof Error ? error.message : "Please check Connex microphone permission and try again.");
+    }
+  };
   const openResult = (result: SearchResult) => {
     setResultsVisible(false);
     if (result.kind === "task") router.push({ pathname: "/task-detail", params: { id: result.id, title: result.title, project: result.project, projectId: result.projectId, milestoneId: result.milestoneId } });
