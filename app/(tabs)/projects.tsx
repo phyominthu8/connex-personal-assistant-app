@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { usePreferences } from "@/lib/preferences";
@@ -32,6 +32,7 @@ function ProjectTimelinePreview({ project, authenticated, localMilestones }: { p
 
 export default function ProjectsScreen() {
   const colors = useColors();
+  const params = useLocalSearchParams<{ create?: string; title?: string }>();
   const { preferences } = usePreferences();
   const { projects, milestones, addProject, deleteProject } = useProjects();
   const { tasks, deleteProjectTasks } = useLocalTasks();
@@ -48,8 +49,8 @@ export default function ProjectsScreen() {
   const [viewMode, setViewMode] = useState<"cards" | "timeline">("timeline");
   const [status, setStatus] = useState<(typeof statuses)[number]>("all");
   const [sortNewest, setSortNewest] = useState(true);
-  const [createVisible, setCreateVisible] = useState(false);
-  const [title, setTitle] = useState("");
+  const [createVisible, setCreateVisible] = useState(params.create === "1");
+  const [title, setTitle] = useState(typeof params.title === "string" ? params.title : "");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
