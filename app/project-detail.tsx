@@ -22,7 +22,7 @@ type ProjectStatus = typeof statuses[number];
 
 export default function ProjectDetailScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ projectId?: string; edit?: string; newMilestone?: string }>();
+  const params = useLocalSearchParams<{ projectId?: string; edit?: string; newMilestone?: string; milestoneTitle?: string }>();
   const { projects: localProjects, milestones: localMilestones, updateProject, deleteProject, addMilestone, updateMilestone, deleteMilestone } = useProjects();
   const { tasks: localTasks, deleteProjectTasks } = useLocalTasks();
   const { user } = useAuth();
@@ -74,9 +74,9 @@ export default function ProjectDetailScreen() {
     setTitle(project.title); setDescription(project.description || ""); setStartDate(project.startDate || ""); setEndDate(project.endDate || ""); setStatus(project.status); setProjectColor(project.color || "#4F46E5"); setReminderTime(preferences.notificationTime);
     if (params.edit === "1") setEditVisible(true);
     if (params.newMilestone === "1") {
-      setMilestoneId(null); setMilestoneTitle(""); setMilestoneColor(project.color || "#4F46E5"); setMilestoneDescription(""); setMilestoneDueDate(""); setMilestoneReminderTime(preferences.notificationTime); setMilestoneReminderAt(""); setMilestoneVisible(true);
+      setMilestoneId(null); setMilestoneTitle(params.milestoneTitle || ""); setMilestoneColor(project.color || "#4F46E5"); setMilestoneDescription(""); setMilestoneDueDate(""); setMilestoneReminderTime(preferences.notificationTime); setMilestoneReminderAt(""); setMilestoneVisible(true);
     }
-  }, [project?.id, params.edit, params.newMilestone, preferences.notificationTime]);
+  }, [project?.id, params.edit, params.newMilestone, params.milestoneTitle, preferences.notificationTime]);
 
   useEffect(() => {
     if (!project) return;

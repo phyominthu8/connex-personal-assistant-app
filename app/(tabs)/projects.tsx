@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -32,7 +32,7 @@ function ProjectTimelinePreview({ project, authenticated, localMilestones }: { p
 
 export default function ProjectsScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ create?: string; title?: string }>();
+  const params = useLocalSearchParams<{ create?: string; title?: string; query?: string; milestoneTitle?: string }>();
   const { preferences } = usePreferences();
   const { projects, milestones, addProject, deleteProject } = useProjects();
   const { tasks, deleteProjectTasks } = useLocalTasks();
@@ -44,7 +44,7 @@ export default function ProjectsScreen() {
   const projectSource: ProjectListItem[] = authenticated && serverProjectsQuery.data
     ? serverProjectsQuery.data.map((project) => ({ ...project, id: String(project.id), startDate: project.startDate || undefined, endDate: project.endDate || undefined, description: project.description || undefined, status: project.status as ProjectListItem["status"], type: project.type as ProjectListItem["type"] }))
     : projects;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
   const [type, setType] = useState<(typeof types)[number]>("all");
   const [viewMode, setViewMode] = useState<"cards" | "timeline">("timeline");
   const [status, setStatus] = useState<(typeof statuses)[number]>("all");
@@ -58,10 +58,19 @@ export default function ProjectsScreen() {
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [newType, setNewType] = useState<"personal" | "work" | "team" | "other">("personal");
   const [newColor, setNewColor] = useState("#4F46E5");
+  const milestoneRouted = useRef(false);
 
   const visibleProjects = useMemo(() => projectSource
     .filter((project) => (!query.trim() || project.title.toLowerCase().includes(query.toLowerCase())) && (type === "all" || project.type === type) && (status === "all" || project.status === status))
     .sort((a, b) => sortNewest ? b.id.localeCompare(a.id) : a.title.localeCompare(b.title)), [projectSource, query, sortNewest, status, type]);
+
+  useEffect(() => {
+    if (milestoneRouted.current || !params.milestoneTitle || !params.query) return;
+    const target = projectSource.find((project) => project.title.toLowerCase() === params.query?.toLowerCase());
+    if (!target) return;
+    milestoneRouted.current = true;
+    router.push({ pathname: "/project-detail", params: { projectId: target.id, newMilestone: "1", milestoneTitle: params.milestoneTitle } });
+  }, [params.milestoneTitle, params.query, projectSource]);
 
   const resetCreateForm = () => {
     setTitle("");

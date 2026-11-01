@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { usePreferences } from "@/lib/preferences";
@@ -18,14 +18,16 @@ const validSortOptions: TaskSortOption[] = ["priority", "created", "due", "title
 
 export default function TasksScreen() {
   const colors = useColors();
+  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
   const { preferences } = usePreferences();
   const { tasks: localTasks, toggleTask, deleteTask } = useLocalTasks();
   const { user } = useAuth();
   const serverTasksQuery = trpc.tasks.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
   const updateMutation = trpc.tasks.update.useMutation({ onSuccess: () => void serverTasksQuery.refetch() });
   const deleteMutation = trpc.tasks.delete.useMutation({ onSuccess: () => void serverTasksQuery.refetch() });
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<TaskDateFilter>("All");
+  const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
+  const initialFilter = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Completed"].includes(params.filter || "") ? params.filter as TaskDateFilter : "All";
+  const [filter, setFilter] = useState<TaskDateFilter>(initialFilter);
   const [sort, setSort] = useState<TaskSortOption>("created");
   const [sortVisible, setSortVisible] = useState(false);
   const filters: TaskDateFilter[] = ["All", "Today", "Tomorrow", "This Week", "Overdue", "Completed"];

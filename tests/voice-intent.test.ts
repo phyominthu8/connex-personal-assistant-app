@@ -3,8 +3,13 @@ import { parseVoiceIntent } from "../lib/voice-intent";
 
 describe("voice intent parsing", () => {
   it("recognizes project creation commands and extracts the project name", () => {
-    expect(parseVoiceIntent("Make new project. Name is Project02.")).toEqual({ kind: "project", title: "Project02" });
-    expect(parseVoiceIntent("Create a new project: Website refresh")).toEqual({ kind: "project", title: "Website refresh" });
+    expect(parseVoiceIntent("Make new project. Name is Project02.")).toEqual({ kind: "create-project", title: "Project02" });
+    expect(parseVoiceIntent("Create a new project: Website refresh")).toEqual({ kind: "create-project", title: "Website refresh" });
+  });
+
+  it("recognizes milestone creation and filtered searches", () => {
+    expect(parseVoiceIntent("Create a new milestone in Project02: Launch website")).toEqual({ kind: "create-milestone", title: "Launch website", projectName: "Project02" });
+    expect(parseVoiceIntent("Find overdue tasks in project Project02")).toMatchObject({ kind: "search", entity: "tasks", filter: "Overdue", projectName: "Project02" });
   });
 
   it("keeps ordinary commands on the task path", () => {
