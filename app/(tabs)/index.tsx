@@ -9,7 +9,7 @@ import { useColors } from "@/hooks/use-colors";
 import { usePreferences } from "@/lib/preferences";
 import { formatGreeting } from "@/lib/greeting";
 import { useLocalTasks } from "@/lib/local-store";
-import { toDateKey } from "@/lib/task-date";
+import { matchesTaskDateFilter, toDateKey, type TaskDateFilter } from "@/lib/task-date";
 
 const days = ["S", "M", "T", "W", "T", "F", "S"];
 export default function CalendarScreen() {
@@ -20,12 +20,13 @@ export default function CalendarScreen() {
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [monthOffset, setMonthOffset] = useState(0);
   const [quickSettingsVisible, setQuickSettingsVisible] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<TaskDateFilter>("All");
   const monthDate = useMemo(() => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1), [today, monthOffset]);
   const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
   const monthLabel = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const selectedDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), Math.min(selectedDay, daysInMonth));
   const selectedDateKey = toDateKey(selectedDate);
-  const selectedTasks = localTasks.filter((task) => task.dueDate === selectedDateKey);
+  const selectedTasks = localTasks.filter((task) => task.dueDate === selectedDateKey && matchesTaskDateFilter({ dueDate: task.dueDate, completed: task.complete }, taskFilter));
   const completedSelectedTasks = selectedTasks.filter((task) => task.complete).length;
   const progress = selectedTasks.length ? Math.round((completedSelectedTasks / selectedTasks.length) * 100) : 0;
   const calendarDays = Array.from({ length: monthDate.getDay() + daysInMonth }, (_, index) => index < monthDate.getDay() ? null : index - monthDate.getDay() + 1);
@@ -60,12 +61,13 @@ export default function CalendarScreen() {
           <View style={styles.weekRow}>{days.map((day, index) => <Text key={`${day}-${index}`} style={[styles.weekday, { color: colors.muted }]}>{day}</Text>)}</View>
           <View style={styles.grid}>{calendarDays.map((day, index) => {
             const dayKey = day ? toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth(), day)) : "";
-            const hasTask = localTasks.some((task) => task.dueDate === dayKey);
+            const hasTask = localTasks.some((task) => task.dueDate === dayKey && matchesTaskDateFilter({ dueDate: task.dueDate, completed: task.complete }, taskFilter));
             const selected = day === selectedDay;
             return <Pressable key={`${day ?? "empty"}-${index}`} disabled={!day} onPress={() => day && setSelectedDay(day)} style={[styles.dayCell, selected && { backgroundColor: colors.primary }]}><Text style={[styles.dayText, { color: selected ? "#FFFFFF" : colors.foreground }]}>{day ?? ""}</Text>{hasTask && <View style={[styles.dot, { backgroundColor: selected ? "#FFFFFF" : colors.warning }]} />}</Pressable>;
           })}</View>
         </View>
 
+        <View style={styles.filterRow}>{(["All", "Overdue"] as const).map((filter) => <Pressable key={filter} onPress={() => setTaskFilter(filter)} style={[styles.filterChip, { borderColor: colors.border, backgroundColor: taskFilter === filter ? colors.primary : colors.surface }]}><Text style={{ color: taskFilter === filter ? "#FFFFFF" : colors.muted, fontSize: 12, fontWeight: "800" }}>{filter}</Text></Pressable>)}</View>
         <View style={styles.sectionHeader}><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{monthLabel} · {selectedDay}</Text><Text style={[styles.count, { color: colors.muted }]}>{selectedTasks.length} items</Text></View>
         <View style={styles.taskList}>{selectedTasks.length ? selectedTasks.map((task) => <View key={task.id} style={[styles.taskRow, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={[styles.taskMarker, { backgroundColor: task.priority === "High" ? colors.error : colors.primary }]} /><View style={styles.taskCopy}><Text style={[styles.taskTitle, { color: colors.foreground }, task.complete && styles.done]}>{task.title}</Text><Text style={[styles.taskTime, { color: colors.muted }]}>{task.due}</Text></View><Ionicons name={task.complete ? "checkmark-circle" : "ellipse-outline"} size={24} color={task.complete ? colors.success : colors.muted} /></View>) : <Text style={[styles.empty, { color: colors.muted }]}>No tasks planned for this date.</Text>}</View>
 
@@ -92,6 +94,8 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: "row", gap: 8 },
   dayTitleRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  filterRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
+  filterChip: { borderWidth: 1, borderRadius: 18, paddingHorizontal: 13, paddingVertical: 8 },
   month: { fontSize: 17, fontWeight: "800" },
   calendarCard: { borderRadius: 20, borderWidth: 1, padding: 14, marginBottom: 26 },
   weekRow: { flexDirection: "row", justifyContent: "space-around", marginBottom: 8 },
