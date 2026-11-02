@@ -6,6 +6,7 @@ import * as db from "./db";
 import { z } from "zod";
 import { isValidDateKey, isValidTime } from "../lib/task-date";
 import { assertTaskRelationshipIntegrity } from "../lib/task-relationships";
+import { transcribeAudio } from "./_core/voiceTranscription";
 
 async function validateAlarmRelationships(userId: number, taskId: number | null | undefined, projectId: number | null | undefined) {
   if (taskId != null && projectId != null) throw new Error("An alarm can reference a task or project, not both");
@@ -32,6 +33,12 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  voice: router({
+    transcribe: publicProcedure
+      .input(z.object({ audioBase64: z.string().min(1).max(23_000_000), mimeType: z.string().max(64).default("audio/mp4"), language: z.string().max(16).optional() }))
+      .mutation(({ input }) => transcribeAudio({ audioBase64: input.audioBase64, mimeType: input.mimeType, language: input.language })),
   }),
 
   tasks: router({

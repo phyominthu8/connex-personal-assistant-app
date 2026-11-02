@@ -28,7 +28,9 @@
 import { ENV } from "./env";
 
 export type TranscribeOptions = {
-  audioUrl: string; // URL to the audio file (e.g., S3 URL)
+  audioUrl?: string; // URL to the audio file (e.g., S3 URL)
+  audioBase64?: string; // Base64 audio captured locally by the mobile app
+  mimeType?: string;
   language?: string; // Optional: specify language code (e.g., "en", "es", "zh")
   prompt?: string; // Optional: custom prompt for the transcription
 };
@@ -95,11 +97,19 @@ export async function transcribeAudio(
       };
     }
 
-    // Step 2: Download audio from URL
+    if (!options.audioUrl && !options.audioBase64) {
+      return { error: "No audio was provided", code: "INVALID_FORMAT" };
+    }
+
+    // Step 2: Read audio from a local base64 recording or download it from a URL
     let audioBuffer: Buffer;
     let mimeType: string;
     try {
-      const response = await fetch(options.audioUrl);
+      if (options.audioBase64) {
+        audioBuffer = Buffer.from(options.audioBase64, "base64");
+        mimeType = options.mimeType || "audio/mp4";
+      } else {
+      const response = await fetch(options.audioUrl!);
       if (!response.ok) {
         return {
           error: "Failed to download audio file",
@@ -110,6 +120,7 @@ export async function transcribeAudio(
 
       audioBuffer = Buffer.from(await response.arrayBuffer());
       mimeType = response.headers.get("content-type") || "audio/mpeg";
+      }
 
       // Check file size (16MB limit)
       const sizeMB = audioBuffer.length / (1024 * 1024);
@@ -117,7 +128,7 @@ export async function transcribeAudio(
         return {
           error: "Audio file exceeds maximum size limit",
           code: "FILE_TOO_LARGE",
-          details: `File size is ${sizeMB.toFixed(2)}MB, maximum allowed is 16MB`,
+        details: `File size is ${sizeMB.toFixed(2)}MB, maximum allowed is 16MB`,
         };
       }
     } catch (error) {
