@@ -17,16 +17,17 @@ import { DatePicker } from "@/components/task-pickers";
 import { formatDateReadable, quickDateKey, toDateKey } from "@/lib/task-date";
 import { ColorPalette } from "@/components/color-palette";
 import { isOverdueDate } from "@/lib/task-milestones";
+import { getProjectStatusLabel, isProjectOverdue } from "@/lib/project-status";
 
 const types = ["all", "personal", "work", "team", "other"] as const;
-const statuses = ["all", "active", "completed", "on_hold", "archived"] as const;
+const statuses = ["all", "active", "completed", "on_hold", "archived", "overdue"] as const;
 export type ProjectListItem = { id: string; title: string; description?: string | null; startDate?: string; endDate?: string; type: "personal" | "work" | "team" | "other"; status: "active" | "completed" | "on_hold" | "archived"; color: string; icon: string };
 
 export function matchesProjectDateFilter(project: ProjectListItem, filter: string | undefined, now = new Date()) {
   if (!filter || filter === "All" || filter === "Completed") return true;
   if (filter === "Active") return project.status === "active";
   const today = toDateKey(now);
-  if (filter === "Overdue") return Boolean(project.endDate && project.endDate < today && project.status !== "completed");
+  if (filter === "Overdue") return isProjectOverdue(project.status, project.endDate, now);
   const endOfWeek = new Date(now);
   endOfWeek.setDate(endOfWeek.getDate() + (7 - endOfWeek.getDay()));
   const weekEnd = toDateKey(endOfWeek);
@@ -61,7 +62,7 @@ export default function ProjectsScreen() {
   const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
   const [type, setType] = useState<(typeof types)[number]>("all");
   const [viewMode, setViewMode] = useState<"cards" | "timeline">("timeline");
-  const [status, setStatus] = useState<(typeof statuses)[number]>(params.filter === "Completed" ? "completed" : params.filter === "Active" ? "active" : "all");
+  const [status, setStatus] = useState<(typeof statuses)[number]>(params.filter === "Completed" ? "completed" : params.filter === "Active" ? "active" : params.filter === "Overdue" ? "overdue" : "all");
   const [sortNewest, setSortNewest] = useState(true);
   const [createVisible, setCreateVisible] = useState(params.create === "1");
   const [title, setTitle] = useState(typeof params.title === "string" ? params.title : "");
@@ -76,7 +77,7 @@ export default function ProjectsScreen() {
   const milestoneRouted = useRef(false);
 
   const visibleProjects = useMemo(() => projectSource
-    .filter((project) => (!query.trim() || project.title.toLowerCase().includes(query.toLowerCase())) && (type === "all" || project.type === type) && (status === "all" || project.status === status) && matchesProjectDateFilter(project, params.filter))
+    .filter((project) => (!query.trim() || project.title.toLowerCase().includes(query.toLowerCase())) && (type === "all" || project.type === type) && (status === "all" || (status === "overdue" ? isProjectOverdue(project.status, project.endDate) : project.status === status)) && matchesProjectDateFilter(project, params.filter))
     .sort((a, b) => sortNewest ? b.id.localeCompare(a.id) : a.title.localeCompare(b.title)), [projectSource, query, sortNewest, status, type]);
   const milestoneResults = milestones.filter((milestone) => {
     const matchesText = !milestoneQuery.trim() || milestone.title.toLowerCase().includes(milestoneQuery.toLowerCase()) || projectSource.find((project) => project.id === milestone.projectId)?.title.toLowerCase().includes(milestoneQuery.toLowerCase());
@@ -126,10 +127,12 @@ export default function ProjectsScreen() {
         const completed = linked.filter((task) => task.complete).length;
         const progress = linked.length ? completed / linked.length : project.status === "completed" ? 1 : 0;
         const health = getProjectHealth(project.status, progress, project.endDate);
-        const healthColor = health === "complete" ? colors.success : health === "at-risk" ? colors.error : health === "on-hold" ? colors.warning : colors.primary;
+        const overdue = isProjectOverdue(project.status, project.endDate);
+        const healthColor = health === "complete" ? colors.success : health === "at-risk" || overdue ? colors.error : health === "on-hold" ? colors.warning : colors.primary;
+        const displayStatus = getProjectStatusLabel(project.status, project.endDate);
         return <View key={project.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Pressable onPress={() => router.push({ pathname: "/project-detail", params: { projectId: project.id } })}>
-            <View style={styles.cardTop}><View style={[styles.projectIcon, { backgroundColor: project.color }]}><Ionicons name={(project.icon as keyof typeof Ionicons.glyphMap) || "folder"} size={19} color="#FFFFFF" /></View><View style={styles.cardCopy}><Text style={[styles.projectTitle, { color: colors.foreground }]}>{project.title}</Text><Text style={[styles.projectMeta, { color: colors.muted }]}>{project.type} · {project.status === "on_hold" ? "On hold" : project.status}</Text>{(project.startDate || project.endDate) && <Text style={[styles.projectDates, { color: colors.muted }]}>{project.startDate || "No start"} → {project.endDate || "No due date"}</Text>}<View style={[styles.healthPill, { backgroundColor: `${healthColor}18` }]}><View style={[styles.healthDot, { backgroundColor: healthColor }]} /><Text style={[styles.healthText, { color: healthColor }]}>{PROJECT_HEALTH_LABELS[health]}</Text></View></View><Ionicons name="chevron-forward" size={20} color={colors.muted} /></View>
+            <View style={styles.cardTop}><View style={[styles.projectIcon, { backgroundColor: project.color }]}><Ionicons name={(project.icon as keyof typeof Ionicons.glyphMap) || "folder"} size={19} color="#FFFFFF" /></View><View style={styles.cardCopy}><Text style={[styles.projectTitle, { color: colors.foreground }]}>{project.title}</Text><Text style={[styles.projectMeta, { color: colors.muted }]}>{project.type} · {displayStatus}</Text>{(project.startDate || project.endDate) && <Text style={[styles.projectDates, { color: colors.muted }]}>{project.startDate || "No start"} → {project.endDate || "No due date"}</Text>}<View style={[styles.healthPill, { backgroundColor: `${healthColor}18` }]}><View style={[styles.healthDot, { backgroundColor: healthColor }]} /><Text style={[styles.healthText, { color: healthColor }]}>{overdue ? "Overdue" : PROJECT_HEALTH_LABELS[health]}</Text></View></View><Ionicons name="chevron-forward" size={20} color={colors.muted} /></View>
             <View style={styles.progressRow}><View style={[styles.progressTrack, { backgroundColor: colors.border }]}><View style={[styles.progressFill, { backgroundColor: project.color, width: `${Math.round(progress * 100)}%` }]} /></View><Text style={[styles.progressText, { color: colors.foreground }]}>{Math.round(progress * 100)}%</Text></View>{viewMode === "cards" && <Text style={[styles.taskText, { color: colors.muted }]}>{completed} of {linked.length} linked tasks</Text>}
             {viewMode === "timeline" && <ProjectTimelinePreview project={project} authenticated={authenticated} localMilestones={milestones} />}
           </Pressable>
