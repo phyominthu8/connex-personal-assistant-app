@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer } from "expo-audio";
 import * as Haptics from "expo-haptics";
 import { getLocales } from "expo-localization";
-import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
@@ -16,6 +15,7 @@ import { matchesTaskDateFilter, quickDateKey, toDateKey, type TaskDateFilter } f
 import { sortSearchResultsByDueDate, type VoiceSearchResult } from "@/lib/voice-search";
 import { useAuth } from "@/hooks/use-auth";
 import { trpc } from "@/lib/trpc";
+import { getLocalSpeechModule } from "@/lib/local-speech";
 
 type SearchResult = VoiceSearchResult & { kind: "task" | "project" | "milestone"; subtitle: string; projectId?: string; project?: string; milestoneId?: string };
 
@@ -46,6 +46,7 @@ export default function VoiceAssistantScreen() {
   const { projects, milestones } = useProjects();
   const { user } = useAuth();
   const serverProjectsQuery = trpc.projects.list.useQuery(undefined, { enabled: Boolean(user), retry: false });
+  const localSpeech = useMemo(() => getLocalSpeechModule(), []);
   const startCue = useAudioPlayer(require("../assets/audio/voice-start.wav"));
   const stopCue = useAudioPlayer(require("../assets/audio/voice-stop.wav"));
   const [listening, setListening] = useState(false);
@@ -58,23 +59,29 @@ export default function VoiceAssistantScreen() {
   const [voiceError, setVoiceError] = useState("");
   const today = toDateKey(new Date());
 
-  useSpeechRecognitionEvent("start", () => {
-    setVoiceError("");
-    setListening(true);
-  });
-  useSpeechRecognitionEvent("end", () => setListening(false));
-  useSpeechRecognitionEvent("result", (event) => {
-    const nextText = event.results[0]?.transcript?.trim();
-    if (!nextText) return;
-    setTranscript(nextText);
-    setTextCommand(nextText);
-    setIntent(parseVoiceIntent(nextText));
-  });
-  useSpeechRecognitionEvent("languagedetection", (event) => setDetectedLanguage(event.detectedLanguage));
-  useSpeechRecognitionEvent("error", (event) => {
-    setListening(false);
-    setVoiceError(event.message || event.error);
-  });
+  useEffect(() => {
+    if (!localSpeech) return;
+    const subscriptions = [
+      localSpeech.addListener("start", () => {
+        setVoiceError("");
+        setListening(true);
+      }),
+      localSpeech.addListener("end", () => setListening(false)),
+      localSpeech.addListener("result", (event) => {
+        const nextText = event.results[0]?.transcript?.trim();
+        if (!nextText) return;
+        setTranscript(nextText);
+        setTextCommand(nextText);
+        setIntent(parseVoiceIntent(nextText));
+      }),
+      localSpeech.addListener("languagedetection", (event) => setDetectedLanguage(event.detectedLanguage)),
+      localSpeech.addListener("error", (event) => {
+        setListening(false);
+        setVoiceError(event.message || event.error);
+      }),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
+  }, [localSpeech]);
   const searchableProjects = useMemo(() => {
     const combined = [...projects, ...(serverProjectsQuery.data || []).map((project) => ({ id: String(project.id), title: project.title, description: project.description || undefined, startDate: project.startDate || undefined, endDate: project.endDate || undefined, type: project.type as typeof projects[number]["type"], status: project.status as typeof projects[number]["status"], color: project.color || "#4F46E5", icon: project.icon || "folder" }))];
     return Array.from(new Map(combined.map((project) => [project.title.trim().toLowerCase(), project])).values());
@@ -106,25 +113,29 @@ export default function VoiceAssistantScreen() {
   const startListening = async () => {
     try {
       if (listening) {
-        ExpoSpeechRecognitionModule.stop();
+        localSpeech?.stop();
         await stopCue.seekTo(0).catch(() => undefined);
         stopCue.play();
         return;
       }
       setVoiceError("");
-      const permission = await ExpoSpeechRecognitionModule.requestMicrophonePermissionsAsync();
+      if (!localSpeech) {
+        setVoiceError("Local voice is unavailable in Expo Go. Use a Connex development build for on-device speech recognition.");
+        return;
+      }
+      const permission = await localSpeech.requestMicrophonePermissionsAsync();
       if (!permission.granted) {
         Alert.alert("Microphone permission needed", "Connex needs microphone access for local voice commands. Enable Microphone in device Settings, then try again.");
         return;
       }
-      if (!ExpoSpeechRecognitionModule.supportsOnDeviceRecognition()) {
+      if (!localSpeech.supportsOnDeviceRecognition()) {
         Alert.alert("Local speech is unavailable", "This device does not have an on-device speech model for the selected language. Install the device language pack and try again. Connex will not upload your recording.");
         return;
       }
       await startCue.seekTo(0).catch(() => undefined);
       startCue.play();
       const language = getLocales()[0]?.languageTag || "en-US";
-      ExpoSpeechRecognitionModule.start({
+      localSpeech.start({
         lang: language,
         interimResults: true,
         continuous: false,
@@ -135,7 +146,7 @@ export default function VoiceAssistantScreen() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     } catch (error) {
       setListening(false);
-      ExpoSpeechRecognitionModule.abort();
+      localSpeech?.abort();
       setVoiceError(error instanceof Error ? error.message : "Local speech recognition is unavailable.");
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => undefined);
       Alert.alert("Local voice assistant unavailable", error instanceof Error ? error.message : "Please install an offline speech model and try again.");
