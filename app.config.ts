@@ -102,6 +102,13 @@ const config: ExpoConfig = {
       },
     ],
     [
+      "expo-speech-recognition",
+      {
+        microphonePermission: "Allow $(PRODUCT_NAME) to use the microphone for local voice commands.",
+        speechRecognitionPermission: "Allow $(PRODUCT_NAME) to recognize voice commands on this device.",
+      },
+    ],
+    [
       "expo-video",
       {
         supportsBackgroundPlayback: true,
