@@ -37,8 +37,8 @@ export const appRouter = router({
 
   voice: router({
     transcribe: publicProcedure
-      .input(z.object({ audioBase64: z.string().min(1).max(23_000_000), mimeType: z.string().max(64).default("audio/mp4"), language: z.string().max(16).optional() }))
-      .mutation(({ input }) => transcribeAudio({ audioBase64: input.audioBase64, mimeType: input.mimeType, language: input.language })),
+      .input(z.object({ audioBase64: z.string().min(1).max(23_000_000), mimeType: z.string().max(64).default("audio/mp4"), language: z.string().max(16).optional(), translateToEnglish: z.boolean().default(true) }))
+      .mutation(({ input }) => transcribeAudio({ audioBase64: input.audioBase64, mimeType: input.mimeType, language: input.language, translateToEnglish: input.translateToEnglish })),
   }),
 
   tasks: router({

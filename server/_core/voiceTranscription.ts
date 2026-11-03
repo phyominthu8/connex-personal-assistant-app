@@ -33,6 +33,7 @@ export type TranscribeOptions = {
   mimeType?: string;
   language?: string; // Optional: specify language code (e.g., "en", "es", "zh")
   prompt?: string; // Optional: custom prompt for the transcription
+  translateToEnglish?: boolean; // Translate any detected spoken language into English
 };
 
 // Native Whisper API segment format
@@ -51,7 +52,7 @@ export type WhisperSegment = {
 
 // Native Whisper API response format
 export type WhisperResponse = {
-  task: "transcribe";
+  task: "transcribe" | "translate";
   language: string;
   duration: number;
   text: string;
@@ -149,19 +150,22 @@ export async function transcribeAudio(
 
     formData.append("model", "whisper-1");
     formData.append("response_format", "verbose_json");
+    if (options.translateToEnglish) formData.append("task", "translate");
 
     // Add prompt - use custom prompt if provided, otherwise generate based on language
     const prompt =
       options.prompt ||
-      (options.language
-        ? `Transcribe the user's voice to text, the user's working language is ${getLanguageName(options.language)}`
-        : "Transcribe the user's voice to text");
+      (options.translateToEnglish
+        ? "Detect the spoken language and translate the user's voice command into concise English text"
+        : options.language
+          ? `Transcribe the user's voice to text, the user's working language is ${getLanguageName(options.language)}`
+          : "Transcribe the user's voice to text");
     formData.append("prompt", prompt);
 
     // Step 4: Call the transcription service
     const baseUrl = ENV.forgeApiUrl.endsWith("/") ? ENV.forgeApiUrl : `${ENV.forgeApiUrl}/`;
 
-    const fullUrl = new URL("v1/audio/transcriptions", baseUrl).toString();
+    const fullUrl = new URL(options.translateToEnglish ? "v1/audio/translations" : "v1/audio/transcriptions", baseUrl).toString();
 
     const response = await fetch(fullUrl, {
       method: "POST",
