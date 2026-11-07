@@ -20,6 +20,19 @@ describe("voice intent parsing", () => {
     expect(parseVoiceIntent("Find archived projects")).toMatchObject({ kind: "search", entity: "projects", filter: "Archived" });
   });
 
+  it("keeps project scope separate from the free-text search query", () => {
+    expect(parseVoiceIntent("Find my tasks")).toEqual({ kind: "search", entity: "tasks", query: "", projectName: undefined, filter: undefined });
+    expect(parseVoiceIntent("Find tasks in Project02 due tomorrow")).toMatchObject({ kind: "search", entity: "tasks", query: "", projectName: "Project02", filter: "Tomorrow" });
+    expect(parseVoiceIntent("Show milestones under the project Project02")).toMatchObject({ kind: "search", entity: "milestones", query: "", projectName: "Project02" });
+    expect(parseVoiceIntent("List completed milestones related to Project02")).toMatchObject({ kind: "search", entity: "milestones", query: "", projectName: "Project02", filter: "Completed" });
+  });
+
+  it("supports natural aliases and milestone text searches", () => {
+    expect(parseVoiceIntent("List my to-do items")).toMatchObject({ kind: "search", entity: "tasks", query: "" });
+    expect(parseVoiceIntent("Find tasks called renew passport")).toMatchObject({ kind: "search", entity: "tasks", query: "renew passport" });
+    expect(parseVoiceIntent("Find finished milestones")).toMatchObject({ kind: "search", entity: "milestones", filter: "Completed" });
+  });
+
   it("keeps ordinary commands on the task path", () => {
     expect(parseVoiceIntent("Add dentist appointment tomorrow")).toEqual({ kind: "task", text: "Add dentist appointment tomorrow" });
   });

@@ -42,7 +42,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.0.0",
+  version: "1.0.1",
   description: "Personal assistant for tasks, projects, milestones, calendar, and voice interaction.",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -140,6 +140,11 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    eas: {
+      projectId: "85b62b1c-e87d-4fcd-8e9d-495957edda0f",
+    },
   },
 };
 

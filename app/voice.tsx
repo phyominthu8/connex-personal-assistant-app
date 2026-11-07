@@ -91,22 +91,32 @@ export default function VoiceAssistantScreen() {
     if (intent.kind !== "search") return [];
     const query = intent.query.toLowerCase().trim();
     const matchesText = (value: string) => !query || value.toLowerCase().includes(query);
+    const requestedProject = intent.projectName?.toLowerCase().trim();
+    const projectById = new Map(searchableProjects.map((project) => [String(project.id), project]));
+    const matchesProject = (projectId: string | undefined, projectName: string | undefined) => {
+      if (!requestedProject) return true;
+      const linkedProject = projectId ? projectById.get(String(projectId)) : undefined;
+      return Boolean(
+        linkedProject?.title.toLowerCase().includes(requestedProject) ||
+        projectName?.toLowerCase().includes(requestedProject),
+      );
+    };
     if (intent.entity === "tasks") {
-      return tasks.filter((task) => matchesText(`${task.title} ${task.project}`) && matchesTaskDateFilter({ dueDate: task.dueDate, completed: task.complete }, (intent.filter || "All") as TaskDateFilter)).map((task) => ({ kind: "task", id: task.id, title: task.title, dueDate: task.dueDate, subtitle: `${task.project} · ${task.due || task.dueDate}`, project: task.project, projectId: task.projectId, milestoneId: task.milestoneId }));
+      return tasks.filter((task) => matchesProject(task.projectId, task.project) && matchesText(`${task.title} ${task.project} ${task.category} ${task.notes || ""}`) && matchesTaskDateFilter({ dueDate: task.dueDate, completed: task.complete }, (intent.filter || "All") as TaskDateFilter)).map((task) => ({ kind: "task", id: task.id, title: task.title, dueDate: task.dueDate, subtitle: `${task.project || "Personal"}${task.dueDate ? ` · Due ${task.dueDate}` : ""}`, project: task.project, projectId: task.projectId, milestoneId: task.milestoneId }));
     }
     if (intent.entity === "projects") {
-      return searchableProjects.filter((project) => matchesText(project.title) && projectMatches(project, intent.filter, today)).map((project) => ({ kind: "project", id: project.id, title: project.title, dueDate: project.endDate, subtitle: `${project.status.replace("_", " ")}${project.endDate ? ` · Due ${project.endDate}` : ""}`, projectId: project.id }));
+      return searchableProjects.filter((project) => matchesProject(project.id, project.title) && matchesText(`${project.title} ${project.description || ""}`) && projectMatches(project, intent.filter, today)).map((project) => ({ kind: "project", id: project.id, title: project.title, dueDate: project.endDate, subtitle: `${project.status.replace("_", " ")}${project.endDate ? ` · Due ${project.endDate}` : ""}`, projectId: project.id }));
     }
     return milestones.filter((milestone) => {
-      const project = projects.find((item) => item.id === milestone.projectId);
+      const project = projectById.get(String(milestone.projectId));
       const statusMatch = intent.filter === "Completed" ? milestone.completed : intent.filter === "Active" ? !milestone.completed : intent.filter === "On Hold" || intent.filter === "Archived" ? false : true;
       const tomorrow = quickDateKey("Tomorrow");
       const end = new Date();
       end.setDate(end.getDate() + (7 - end.getDay()));
       const weekEnd = toDateKey(end);
       const dateMatch = intent.filter === "Today" ? milestone.dueDate === today : intent.filter === "Tomorrow" ? milestone.dueDate === tomorrow : intent.filter === "This Week" ? Boolean(milestone.dueDate && milestone.dueDate >= today && milestone.dueDate <= weekEnd) : intent.filter === "Overdue" ? !milestone.completed && isOverdueDate(milestone.dueDate, today) : true;
-      return statusMatch && dateMatch && matchesText(`${milestone.title} ${project?.title || ""}`);
-    }).map((milestone) => ({ kind: "milestone", id: milestone.id, title: milestone.title, dueDate: milestone.dueDate, subtitle: `${projects.find((project) => project.id === milestone.projectId)?.title || "Project"}${milestone.dueDate ? ` · Due ${milestone.dueDate}` : ""}`, projectId: milestone.projectId, milestoneId: milestone.id }));
+      return statusMatch && dateMatch && matchesProject(milestone.projectId, project?.title) && matchesText(`${milestone.title} ${milestone.description || ""} ${project?.title || ""}`);
+    }).map((milestone) => ({ kind: "milestone", id: milestone.id, title: milestone.title, dueDate: milestone.dueDate, subtitle: `${projectById.get(String(milestone.projectId))?.title || "Project"}${milestone.dueDate ? ` · Due ${milestone.dueDate}` : ""}`, projectId: milestone.projectId, milestoneId: milestone.id }));
   }, [intent, milestones, projects, searchableProjects, tasks, today]);
   const sortedResults = useMemo(() => sortSearchResultsByDueDate(searchResults, sortAscending), [searchResults, sortAscending]);
 
