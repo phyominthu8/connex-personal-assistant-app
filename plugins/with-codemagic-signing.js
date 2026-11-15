@@ -23,8 +23,8 @@ module.exports = function withCodemagicSigning(config) {
       );
     }
     mod.modResults.contents = mod.modResults.contents.replace(
-      /(buildTypes\s*\{[\s\S]*?release\s*\{)/m,
-      '$1\n            if (System.getenv("CM_KEYSTORE_PATH") != null) { signingConfig signingConfigs.release }',
+      /signingConfig signingConfigs\.debug/g,
+      'signingConfig (System.getenv("CM_KEYSTORE_PATH") != null ? signingConfigs.release : signingConfigs.debug)',
     );
     return mod;
   });
