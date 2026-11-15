@@ -87,6 +87,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "./plugins/with-codemagic-signing",
     "expo-asset",
     "expo-font",
     "expo-image",
