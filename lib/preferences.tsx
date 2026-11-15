@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-const KEY = "personal-assistant.preferences.v2";
+export const PREFERENCES_STORAGE_KEY = "personal-assistant.preferences.v2";
 export const ACCENT_PALETTES = ["#4F46E5", "#0F766E", "#C2410C", "#BE185D", "#7C3AED"] as const;
 export type AccentPalette = (typeof ACCENT_PALETTES)[number];
 export type Preferences = { name: string; email: string; notifications: boolean; darkMode: boolean; accent: string; timezone: string; sound: boolean; vibration: boolean; notificationTime: string };
@@ -26,21 +26,20 @@ export function normalizePreferences(raw: unknown): Preferences {
   };
 }
 
-type PreferencesContextValue = { preferences: Preferences; update: (patch: Partial<Preferences>) => void; hydrated: boolean };
+type PreferencesContextValue = { preferences: Preferences; update: (patch: Partial<Preferences>) => void; reload: () => Promise<void>; hydrated: boolean };
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<Preferences>(defaults);
   const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    AsyncStorage.getItem(KEY).then((raw) => { if (raw) { try { setPreferences(normalizePreferences(JSON.parse(raw))); } catch { setPreferences(defaults); } } }).catch(() => undefined).finally(() => setHydrated(true));
-  }, []);
+  const reload = async () => { const raw = await AsyncStorage.getItem(PREFERENCES_STORAGE_KEY); if (raw) { try { setPreferences(normalizePreferences(JSON.parse(raw))); } catch { setPreferences(defaults); } } };
+  useEffect(() => { reload().catch(() => undefined).finally(() => setHydrated(true)); }, []);
   const update = (patch: Partial<Preferences>) => {
     const next = normalizePreferences({ ...preferences, ...patch });
     setPreferences(next);
-    void AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => undefined);
+    void AsyncStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(next)).catch(() => undefined);
   };
-  return <PreferencesContext.Provider value={{ preferences, update, hydrated }}>{children}</PreferencesContext.Provider>;
+  return <PreferencesContext.Provider value={{ preferences, update, reload, hydrated }}>{children}</PreferencesContext.Provider>;
 }
 
 export function usePreferences() {
